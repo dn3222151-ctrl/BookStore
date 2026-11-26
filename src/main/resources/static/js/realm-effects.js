@@ -105,11 +105,12 @@ function playBreakthroughAudio() {
 // =========================================================================
 // 3. MÀN HÌNH CHỜ CỔ TRANG TU TIÊN (THỦY MẶC SƠN THỦY + HOA ĐÀO + KHAI MÔN)
 // =========================================================================
-function playXuyenKhongIntro(forceReplay) {
-    if (!forceReplay && sessionStorage.getItem('bookstore_xuyenkhong_seen')) return;
+function playXuyenKhongIntro(forceReplay, userId) {
+    const seenKey = 'bookstore_xuyenkhong_seen_' + (userId || 'guest');
+    if (!forceReplay && sessionStorage.getItem(seenKey)) return;
     if (document.getElementById('xuyenKhongOverlay')) return;
 
-    sessionStorage.setItem('bookstore_xuyenkhong_seen', '1');
+    sessionStorage.setItem(seenKey, '1');
 
     const overlay = document.createElement('div');
     overlay.id = 'xuyenKhongOverlay';
@@ -1007,15 +1008,17 @@ function showBreakthroughModal(realmName, realmTitle, perks, customSubtitle, lev
 // 9. TỰ ĐỘNG KÍCH HOẠT KHI TẢI TRANG
 // =========================================================================
 document.addEventListener('DOMContentLoaded', function () {
-    // 1. Màn hình chờ Xuyên Không (chỉ chạy 1 lần mỗi phiên trên trang /shop)
+    const tracker = document.getElementById('realm-tracker');
+    const currentUserId = tracker ? (tracker.dataset.userId || 'guest') : 'guest';
+
+    // 1. Màn hình chờ Cổ Trang (chạy 1 lần cho mỗi tài khoản trên mỗi phiên)
     if (window.location.pathname === '/shop' || window.location.pathname === '/') {
-        playXuyenKhongIntro(false);
+        playXuyenKhongIntro(false, currentUserId);
     }
 
     updateDragonToggleLabel();
 
     // 2. Theo dõi cảnh giới & Rồng hộ mệnh
-    const tracker = document.getElementById('realm-tracker');
     if (tracker) {
         const userId = tracker.dataset.userId;
         const currentLevel = parseInt(tracker.dataset.level, 10);
@@ -1051,4 +1054,192 @@ document.addEventListener('DOMContentLoaded', function () {
             8
         );
     }
+
+    // 4. Nút "Ngự Kiếm Về Đỉnh" (Back-to-Top)
+    const topBtn = document.createElement('button');
+    topBtn.type = 'button';
+    topBtn.className = 'sword-top-btn';
+    topBtn.title = 'Ngự Kiếm Về Đỉnh';
+    topBtn.innerHTML = '<i class="bi bi-chevron-double-up fs-5"></i>';
+    topBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    document.body.appendChild(topBtn);
+
+    window.addEventListener('scroll', () => {
+        topBtn.classList.toggle('show', window.scrollY > 280);
+    }, { passive: true });
+
+    // 5. Scroll Reveal cho thẻ sách (/shop) & bài đăng (/forum)
+    const path = window.location.pathname;
+    if (path.startsWith('/shop') || path.startsWith('/forum') || path === '/') {
+        const cards = document.querySelectorAll('.card');
+        if ('IntersectionObserver' in window && cards.length > 0) {
+            const observer = new IntersectionObserver((entries, obs) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        obs.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.08 });
+
+            cards.forEach((card, idx) => {
+                card.classList.add('realm-reveal');
+                card.style.transitionDelay = Math.min((idx % 4) * 55, 165) + 'ms';
+                observer.observe(card);
+            });
+        }
+    }
+
+    // 6. Nâng cấp Thanh Tu Vi chảy linh khí trên trang /account
+    if (path.startsWith('/account')) {
+        document.querySelectorAll('.progress-bar').forEach(bar => {
+            bar.classList.add('realm-progress-flow');
+            if (bar.parentElement) {
+                bar.parentElement.style.overflow = 'visible';
+            }
+        });
+    }
+
+    // 7. Hiệu ứng nghiêng 3D nhẹ cho thẻ sách khi rê chuột (/shop)
+    if (path.startsWith('/shop') || path === '/') {
+        document.querySelectorAll('.card').forEach((card) => {
+            if (!card.querySelector('.book-img-wrapper')) return;
+
+            card.addEventListener('mousemove', function (e) {
+                const rect = card.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width - 0.5;
+                const y = (e.clientY - rect.top) / rect.height - 0.5;
+                const rotateY = (x * 8).toFixed(2);
+                const rotateX = (-y * 8).toFixed(2);
+
+                card.style.transition = 'transform 0.12s ease-out, border-color 0.25s ease, box-shadow 0.25s ease';
+                card.style.transform = `perspective(750px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+            });
+
+            card.addEventListener('mouseleave', function () {
+                card.style.transition = 'transform 0.35s ease, border-color 0.25s ease, box-shadow 0.25s ease';
+                card.style.transform = '';
+            });
+        });
+    }
 });
+
+// =========================================================================
+// 10. GỢN SÓNG LINH KHÍ KHI CLICK & NHẬT NGUYỆT LUÂN CHUYỂN (PHẠM VI GLOBAL)
+// =========================================================================
+document.addEventListener('click', function (e) {
+    if (e.target.closest('.xuyenkhong-overlay')) return;
+
+    const ring = document.createElement('span');
+    ring.className = 'spirit-click-ring';
+    ring.style.left = e.clientX + 'px';
+    ring.style.top = e.clientY + 'px';
+    document.body.appendChild(ring);
+    setTimeout(() => ring.remove(), 560);
+
+    for (let i = 0; i < 4; i++) {
+        const dot = document.createElement('span');
+        dot.className = 'spirit-click-dot';
+        const angle = (Math.PI / 2) * i + (Math.random() - 0.5) * 0.6;
+        const dist = 16 + Math.random() * 14;
+        dot.style.left = e.clientX + 'px';
+        dot.style.top = e.clientY + 'px';
+        dot.style.setProperty('--dx', (Math.cos(angle) * dist).toFixed(1) + 'px');
+        dot.style.setProperty('--dy', (Math.sin(angle) * dist).toFixed(1) + 'px');
+        document.body.appendChild(dot);
+        setTimeout(() => dot.remove(), 520);
+    }
+});
+
+function toggleThemeWithRipple(e) {
+    const current = document.documentElement.getAttribute('data-bs-theme') || 'light';
+    const next = current === 'dark' ? 'light' : 'dark';
+
+    const applyTheme = () => {
+        document.documentElement.setAttribute('data-bs-theme', next);
+        localStorage.setItem('bookstore-theme', next);
+        if (typeof updateThemeLabel === 'function') updateThemeLabel();
+    };
+
+    if (!document.startViewTransition) {
+        applyTheme();
+        return;
+    }
+
+    const x = e && e.clientX ? e.clientX : window.innerWidth - 60;
+    const y = e && e.clientY ? e.clientY : 30;
+    const maxRadius = Math.hypot(
+        Math.max(x, window.innerWidth - x),
+        Math.max(y, window.innerHeight - y)
+    );
+
+    const transition = document.startViewTransition(applyTheme);
+    transition.ready.then(() => {
+        document.documentElement.animate(
+            {
+                clipPath: [
+                    `circle(0px at ${x}px ${y}px)`,
+                    `circle(${maxRadius}px at ${x}px ${y}px)`
+                ]
+            },
+            {
+                duration: 520,
+                easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                pseudoElement: '::view-transition-new(root)'
+            }
+        );
+    });
+
+    // =========================================================================
+// 11. HIỆU ỨNG SÁCH HÓA LINH QUANG BAY VÀO KỆ SÁCH (FLY-TO-CART)
+// =========================================================================
+    document.addEventListener('DOMContentLoaded', function () {
+        const cartBtn = document.querySelector('a[href*="/shop/cart"]');
+        if (!cartBtn) return;
+
+        document.querySelectorAll('form[action*="/cart/add"]').forEach((form) => {
+            form.addEventListener('submit', function (e) {
+                if (form.dataset.flying === '1') return;
+
+                const card = form.closest('.card');
+                const img = card ? card.querySelector('.book-img-wrapper img') : null;
+                if (!img) return;
+
+                e.preventDefault();
+                form.dataset.flying = '1';
+
+                const imgRect = img.getBoundingClientRect();
+                const cartRect = cartBtn.getBoundingClientRect();
+
+                const clone = document.createElement('img');
+                clone.src = img.currentSrc || img.src;
+                clone.className = 'flying-book-clone';
+                clone.style.left = imgRect.left + 'px';
+                clone.style.top = imgRect.top + 'px';
+                clone.style.width = imgRect.width + 'px';
+                clone.style.height = imgRect.height + 'px';
+                clone.style.opacity = '0.95';
+                document.body.appendChild(clone);
+
+                // Kích hoạt bay lên nút Kệ sách ở khung hình kế tiếp
+                requestAnimationFrame(() => {
+                    clone.style.left = (cartRect.left + cartRect.width / 2 - 14) + 'px';
+                    clone.style.top = (cartRect.top + cartRect.height / 2 - 18) + 'px';
+                    clone.style.width = '28px';
+                    clone.style.height = '36px';
+                    clone.style.opacity = '0.2';
+                    clone.style.transform = 'rotate(18deg)';
+                });
+
+                setTimeout(() => {
+                    clone.remove();
+                    cartBtn.classList.add('cart-btn-bounce');
+                    setTimeout(() => form.submit(), 180);
+                }, 540);
+            });
+        });
+    });
+    
+}

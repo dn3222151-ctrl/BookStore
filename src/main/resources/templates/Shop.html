@@ -150,10 +150,18 @@
     </div>
 
 
-    <div class="border rounded p-4 mb-4 bg-body">
-        <div class="row align-items-center">
+    <div class="xian-banner rounded p-4 mb-4">
+        <span class="xian-corner xian-corner-tl"></span>
+        <span class="xian-corner xian-corner-tr"></span>
+        <span class="xian-corner xian-corner-bl"></span>
+        <span class="xian-corner xian-corner-br"></span>
+
+        <div class="row align-items-center xian-banner-corners">
             <div class="col-lg-8">
-                <h4 class="fw-semibold mb-2">Mở trang sách, mở tương lai</h4>
+                <h4 class="fw-semibold mb-2">
+                    Mở trang sách, mở tương lai
+                    <span class="xian-mini-seal">Tàng Kinh</span>
+                </h4>
                 <p class="text-body-secondary mb-3">
                     Chào mừng bạn đến với BookStore — nơi hội tụ những đầu sách về Công nghệ, Manga, Kinh tế và Văn học.
                 </p>
@@ -164,7 +172,7 @@
                 </div>
             </div>
             <div class="col-lg-4 text-center d-none d-lg-block">
-                <i class="bi bi-journal-richtext text-secondary" style="font-size: 80px;"></i>
+                <i class="bi bi-journal-richtext xian-banner-icon"></i>
             </div>
         </div>
     </div>
@@ -242,12 +250,15 @@
 </div>
 
 
-<footer class="bg-body border-top mt-5 py-3 text-center text-body-secondary small">
+<footer class="xian-footer mt-5 py-4 text-center text-body-secondary small">
     <div class="container">
-        <p class="mb-1 fw-semibold text-body">Hệ thống nhà sách trực tuyến BookStore</p>
-        <p class="mb-0">Dự án môn học Java 6 — Spring Boot 3-Layer Architecture & Microsoft SQL Server.</p>
+        <p class="mb-1 fw-semibold text-body xian-serif-title">
+            <i class="bi bi-book-half text-warning me-1"></i> Tàng Kinh Các — BookStore
+        </p>
+        <p class="mb-0">Vạn quyển kỳ thư • Hệ thống nhà sách trực tuyến Spring Boot & SQL Server</p>
     </div>
 </footer>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script th:src="@{/js/realm-effects.js}"></script>
@@ -267,13 +278,18 @@
         }
     }
 
-    function toggleTheme() {
-        const current = document.documentElement.getAttribute('data-bs-theme') || 'light';
-        const next = current === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-bs-theme', next);
-        localStorage.setItem('bookstore-theme', next);
-        updateThemeLabel();
+    function toggleTheme(e) {
+        if (typeof toggleThemeWithRipple === 'function') {
+            toggleThemeWithRipple(e || window.event);
+        } else {
+            const current = document.documentElement.getAttribute('data-bs-theme') || 'light';
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-bs-theme', next);
+            localStorage.setItem('bookstore-theme', next);
+            updateThemeLabel();
+        }
     }
+
 
     document.addEventListener('DOMContentLoaded', updateThemeLabel);
 </script>
