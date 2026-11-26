@@ -1,24 +1,30 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hiệu Sách Trực Tuyến - BookStore</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script>
+        // Áp dụng ngay chế độ Sáng/Tối đã lưu trước khi trang hiển thị
+        (function () {
+            const savedTheme = localStorage.getItem('bookstore-theme') || 'light';
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+        })();
+    </script>
     <style>
-        /* Chỉ 3 dòng CSS tùy chỉnh */
-        body { font-size: 14px; background-color: #f8f9fa; }
-        .book-img-wrapper { height: 220px; background: #f0f2f5; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        body { font-size: 14px; }
+        .book-img-wrapper { height: 220px; background: var(--bs-tertiary-bg); display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .book-img-wrapper img { max-height: 100%; max-width: 100%; object-fit: cover; }
     </style>
 </head>
-<body>
+<body class="bg-body-tertiary">
 
-<!-- Navigation Bar: nền trắng, viền dưới mảnh -->
-<nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg bg-body border-bottom sticky-top">
     <div class="container">
-        <a class="navbar-brand fw-semibold text-dark" th:href="@{/shop}">
+        <a class="navbar-brand fw-semibold" th:href="@{/shop}">
             <i class="bi bi-book-half me-1"></i> BookStore
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#shopNav">
@@ -27,7 +33,7 @@
 
         <div class="collapse navbar-collapse" id="shopNav">
             <!-- Search bar -->
-            <form th:action="@{/shop}" method="get" class="d-flex mx-auto my-2 my-lg-0" style="max-width: 480px; width: 100%;">
+            <form th:action="@{/shop}" method="get" class="d-flex mx-auto my-2 my-lg-0" style="max-width: 440px; width: 100%;">
                 <div class="input-group input-group-sm">
                     <input type="text" name="keyword" th:value="${keyword}" class="form-control" placeholder="Tìm kiếm sách...">
                     <button class="btn btn-outline-secondary" type="submit">
@@ -37,26 +43,60 @@
             </form>
 
             <div class="d-flex align-items-center gap-2">
-                <!-- Cart Button -->
-                <a th:href="@{/shop/cart}" class="btn btn-outline-secondary btn-sm position-relative">
-                    <i class="bi bi-cart3 me-1"></i> Giỏ hàng
-                    <span th:if="${cartCount > 0}" class="badge bg-dark position-absolute top-0 start-100 translate-middle" th:text="${cartCount}">0</span>
+                <!-- Diễn đàn -->
+                <a th:href="@{/forum}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-chat-dots me-1"></i> Diễn đàn
                 </a>
 
-                <!-- User Account / Login -->
+                <!-- Kệ sách (đổi từ Giỏ hàng) -->
+                <a th:href="@{/shop/cart}" class="btn btn-outline-secondary btn-sm position-relative">
+                    <i class="bi bi-bookshelf me-1"></i> Kệ sách
+                    <span th:if="${cartCount > 0}" class="badge bg-danger position-absolute top-0 start-100 translate-middle" th:text="${cartCount}">0</span>
+                </a>
+
+                <!-- Nút đổi Sáng/Tối nhanh cho khách chưa login -->
+                <button th:if="${currentUser == null}" type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleTheme()" title="Đổi nền Sáng/Tối">
+                    <i class="bi bi-circle-half"></i>
+                </button>
+
+                <!-- User Account Dropdown -->
                 <div th:if="${currentUser != null}" class="dropdown">
                     <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
                         <i class="bi bi-person-circle me-1"></i> <span th:text="${currentUser.fullName}">Người dùng</span>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                         <li th:if="${'ADMIN'.equalsIgnoreCase(currentUser.role)}">
                             <a class="dropdown-item" th:href="@{/books/hienthi}">
                                 <i class="bi bi-speedometer2 me-2"></i> Trang quản trị
                             </a>
                         </li>
-                        <li><a class="dropdown-item" th:href="@{/shop/my-orders}"><i class="bi bi-bag-check me-2"></i> Đơn hàng của tôi</a></li>
+                        <li>
+                            <a class="dropdown-item" th:href="@{/account}">
+                                <i class="bi bi-stars me-2 text-warning"></i> Tài khoản & Cảnh giới
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" th:href="@{/shop/history}">
+                                <i class="bi bi-clock-history me-2"></i> Lịch sử đã xem
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" th:href="@{/shop/my-orders}">
+                                <i class="bi bi-bag-check me-2"></i> Đơn hàng của tôi
+                            </a>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item" onclick="toggleTheme()">
+                                <i class="bi bi-moon-stars me-2" id="themeIcon"></i>
+                                <span id="themeText">Nền Tối / Sáng</span>
+                            </button>
+                        </li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" th:href="@{/logout}"><i class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a></li>
+                        <li>
+                            <a class="dropdown-item text-danger" th:href="@{/logout}">
+                                <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
+                            </a>
+                        </li>
                     </ul>
                 </div>
 
@@ -82,16 +122,17 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 
-    <!-- Hero Banner: phẳng, viền mảnh, không gradient -->
-    <div class="border rounded p-4 mb-4">
+    <!-- Hero Banner -->
+    <div class="border rounded p-4 mb-4 bg-body">
         <div class="row align-items-center">
             <div class="col-lg-8">
                 <h4 class="fw-semibold mb-2">Mở trang sách, mở tương lai</h4>
-                <p class="text-muted mb-3">
+                <p class="text-body-secondary mb-3">
                     Chào mừng bạn đến với BookStore — nơi hội tụ những đầu sách về Công nghệ, Manga, Kinh tế và Văn học.
                 </p>
                 <div class="d-flex gap-2">
                     <a th:href="@{/shop}" class="btn btn-dark btn-sm">Khám phá ngay</a>
+                    <a th:href="@{/forum}" class="btn btn-outline-secondary btn-sm">Vào Diễn đàn</a>
                     <a th:if="${currentUser == null}" th:href="@{/register}" class="btn btn-outline-secondary btn-sm">Đăng ký thành viên</a>
                 </div>
             </div>
@@ -103,7 +144,7 @@
 
     <!-- Categories Filter Pills -->
     <div class="d-flex flex-wrap gap-2 mb-4 align-items-center">
-        <span class="small text-muted me-1">Thể loại:</span>
+        <span class="small text-body-secondary me-1">Thể loại:</span>
         <a th:href="@{/shop}" class="btn btn-sm"
            th:classappend="${selectedCategory == null ? 'btn-dark' : 'btn-outline-secondary'}">
             Tất cả
@@ -120,34 +161,35 @@
     <!-- Books Grid -->
     <div class="row g-3">
         <div th:if="${books.empty}" class="col-12 text-center py-5">
-            <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
-            <h6 class="text-secondary">Không tìm thấy cuốn sách nào phù hợp</h6>
+            <i class="bi bi-inbox fs-1 text-body-secondary d-block mb-3"></i>
+            <h6 class="text-body-secondary">Không tìm thấy cuốn sách nào phù hợp</h6>
             <a th:href="@{/shop}" class="btn btn-outline-secondary btn-sm mt-2">Xem tất cả sách</a>
         </div>
 
         <div th:each="book : ${books}" class="col-sm-6 col-md-4 col-lg-3">
             <div class="card h-100">
-                <div class="book-img-wrapper border-bottom">
-                    <img th:src="${book.imageUrl != null and !book.imageUrl.isEmpty() ? book.imageUrl : 'https://via.placeholder.com/200x260?text=BookStore'}"
+                <a th:href="@{/shop/book/{id}(id=${book.id})}" class="book-img-wrapper border-bottom text-decoration-none">
+                    <img th:src="${book.imageUrl != null and !book.imageUrl.isEmpty() ? book.imageUrl : ''}"
+                         referrerpolicy="no-referrer"
                          alt="Cover"
-                         onerror="this.src='https://via.placeholder.com/200x260?text=No+Cover'">
-                </div>
+                         onerror="this.onerror=null;this.src='data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22260%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23dee2e6%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%236c757d%22 font-family=%22sans-serif%22 font-size=%2214%22%3ECh%C6%B0a c%C3%B3 b%C3%ACa%3C/text%3E%3C/svg%3E';">
+                </a>
 
                 <div class="card-body d-flex flex-column p-3">
                     <div class="mb-2">
-                        <span class="badge border text-dark fw-normal"
+                        <span class="badge border text-body fw-normal"
                               th:text="${book.categories != null ? book.categories.name : 'Khác'}">IT</span>
                     </div>
 
-                    <div class="fw-semibold text-truncate mb-1" th:title="${book.title}" th:text="${book.title}">Tên cuốn sách</div>
-                    <small class="text-muted mb-2 text-truncate" th:text="${book.author != null ? book.author : 'Chưa rõ tác giả'}">Tác giả</small>
+                    <a th:href="@{/shop/book/{id}(id=${book.id})}" class="fw-semibold text-truncate mb-1 text-decoration-none text-body" th:title="${book.title}" th:text="${book.title}">Tên cuốn sách</a>
+                    <small class="text-body-secondary mb-2 text-truncate" th:text="${book.author != null ? book.author : 'Chưa rõ tác giả'}">Tác giả</small>
 
                     <div class="mt-auto pt-2 border-top">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="fw-semibold text-danger"
                                   th:text="${#numbers.formatDecimal(book.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">150.000 đ</span>
-                            <small th:if="${book.quantity > 0}" class="text-muted"><i class="bi bi-check-circle"></i> Còn hàng</small>
-                            <small th:if="${book.quantity <= 0}" class="text-muted"><i class="bi bi-x-circle"></i> Hết hàng</small>
+                            <small th:if="${book.quantity > 0}" class="text-body-secondary"><i class="bi bi-check-circle"></i> Còn hàng</small>
+                            <small th:if="${book.quantity <= 0}" class="text-body-secondary"><i class="bi bi-x-circle"></i> Hết hàng</small>
                         </div>
 
                         <div class="d-flex gap-2">
@@ -158,7 +200,7 @@
                                 <input type="hidden" name="bookId" th:value="${book.id}">
                                 <input type="hidden" name="quantity" value="1">
                                 <button type="submit" class="btn btn-dark btn-sm w-100">
-                                    <i class="bi bi-cart-plus"></i> Mua
+                                    <i class="bi bi-plus-circle"></i> Thêm
                                 </button>
                             </form>
                             <button th:if="${book.quantity <= 0}" class="btn btn-outline-secondary btn-sm w-50" disabled>
@@ -172,14 +214,40 @@
     </div>
 </div>
 
-<!-- Footer: phẳng, viền trên mảnh -->
-<footer class="bg-white border-top mt-5 py-3 text-center text-muted small">
+<!-- Footer -->
+<footer class="bg-body border-top mt-5 py-3 text-center text-body-secondary small">
     <div class="container">
-        <p class="mb-1 fw-semibold text-dark">Hệ thống nhà sách trực tuyến BookStore</p>
-        <p class="mb-0">Dự án môn học Java 6 — Spring Boot 3-Layer Architecture &amp; Microsoft SQL Server.</p>
+        <p class="mb-1 fw-semibold text-body">Hệ thống nhà sách trực tuyến BookStore</p>
+        <p class="mb-0">Dự án môn học Java 6 — Spring Boot 3-Layer Architecture & Microsoft SQL Server.</p>
     </div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function updateThemeLabel() {
+        const current = document.documentElement.getAttribute('data-bs-theme') || 'light';
+        const textEl = document.getElementById('themeText');
+        const iconEl = document.getElementById('themeIcon');
+        if (textEl && iconEl) {
+            if (current === 'dark') {
+                textEl.textContent = 'Chuyển sang nền Sáng';
+                iconEl.className = 'bi bi-sun me-2 text-warning';
+            } else {
+                textEl.textContent = 'Chuyển sang nền Tối';
+                iconEl.className = 'bi bi-moon-stars me-2';
+            }
+        }
+    }
+
+    function toggleTheme() {
+        const current = document.documentElement.getAttribute('data-bs-theme') || 'light';
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-bs-theme', next);
+        localStorage.setItem('bookstore-theme', next);
+        updateThemeLabel();
+    }
+
+    document.addEventListener('DOMContentLoaded', updateThemeLabel);
+</script>
 </body>
 </html>

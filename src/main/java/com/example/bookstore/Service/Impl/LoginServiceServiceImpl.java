@@ -38,7 +38,6 @@ public class LoginServiceServiceImpl implements LoginService {
     }
 
     @Override
-    @Transactional
     public LoginReponse authenticate(LoginRequest loginRequest, String ipAddress) {
         if (loginRequest == null || loginRequest.getUsername() == null || loginRequest.getPassword() == null
                 || loginRequest.getUsername().trim().isEmpty() || loginRequest.getPassword().trim().isEmpty()) {

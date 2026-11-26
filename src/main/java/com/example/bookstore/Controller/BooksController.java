@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import com.example.bookstore.Service.ImageUrlHelper;
 
 @Controller
 @RequestMapping("/books")
@@ -84,6 +85,7 @@ public class BooksController {
             return "redirect:/login";
         }
         try {
+            bookRequest.setImageUrl(ImageUrlHelper.resolveImageUrl(bookRequest.getImageUrl()));
             booksService.addBooks(bookRequest);
             redirectAttributes.addFlashAttribute("successMessage", "Thêm sách mới thành công!");
         } catch (Exception e) {
@@ -120,12 +122,13 @@ public class BooksController {
 
     @PostMapping("/update")
     public String updateBooks(@ModelAttribute BookRequest bookRequest,
-                             RedirectAttributes redirectAttributes,
-                             HttpSession session) {
+                              RedirectAttributes redirectAttributes,
+                              HttpSession session) {
         if (!checkAdmin(session)) {
             return "redirect:/login";
         }
         try {
+            bookRequest.setImageUrl(ImageUrlHelper.resolveImageUrl(bookRequest.getImageUrl()));
             booksService.updateBooks(bookRequest);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật sách thành công!");
         } catch (Exception e) {

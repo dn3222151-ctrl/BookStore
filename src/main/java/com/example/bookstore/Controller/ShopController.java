@@ -14,12 +14,20 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import com.example.bookstore.Entity.ViewHistory;
+import com.example.bookstore.Repository.ViewHistoryRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import java.time.LocalDateTime;
 
 import java.util.*;
 
 @Controller
 @RequestMapping("/shop")
 public class ShopController {
+
+    @Autowired
+    private ViewHistoryRepository viewHistoryRepository;
 
     @Autowired
     private BooksService booksService;
@@ -74,6 +82,17 @@ public class ShopController {
             return "redirect:/shop";
         }
 
+
+        User currentUser = (User) session.getAttribute("currentUser");
+        if (currentUser != null) {
+            Optional<ViewHistory> existing = viewHistoryRepository.findByUserIdAndBookId(currentUser.getId(), book.getId());
+            ViewHistory history = existing.orElseGet(ViewHistory::new);
+            history.setUser(currentUser);
+            history.setBook(book);
+            history.setViewedAt(LocalDateTime.now());
+            viewHistoryRepository.save(history);
+        }
+
         List<Books> relatedBooks = Collections.emptyList();
         if (book.getCategories() != null) {
             relatedBooks = booksService.getBooksByCategory(book.getCategories().getId())
@@ -86,7 +105,7 @@ public class ShopController {
         model.addAttribute("book", book);
         model.addAttribute("relatedBooks", relatedBooks);
         model.addAttribute("cartCount", getCartItemCount(session));
-        model.addAttribute("currentUser", session.getAttribute("currentUser"));
+        model.addAttribute("currentUser", currentUser);
 
         return "BookDetail";
     }
@@ -268,5 +287,29 @@ public class ShopController {
 
         return "MyOrders";
     }
+
+    @GetMapping("/history")
+    public String viewHistory(@RequestParam(value = "page", defaultValue = "1") int page,
+                              Model model,
+                              HttpSession session) {
+        User currentUser = (User) session.getAttribute("currentUser");
+        if (currentUser == null) {
+            return "redirect:/login?required=true";
+        }
+
+        int pageIndex = Math.max(0, page - 1);
+        Page<ViewHistory> historyPage = viewHistoryRepository.findByUserIdOrderByViewedAtDesc(
+                currentUser.getId(), PageRequest.of(pageIndex, 10)
+        );
+
+        model.addAttribute("historyPage", historyPage);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", historyPage.getTotalPages());
+        model.addAttribute("cartCount", getCartItemCount(session));
+        model.addAttribute("currentUser", currentUser);
+
+        return "History";
+    }
+    
 }
 

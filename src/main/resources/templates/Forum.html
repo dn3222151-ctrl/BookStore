@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diễn đàn BookStore</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('bookstore-theme') || 'light';
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+        })();
+    </script>
+    <style>
+        body { font-size: 14px; }
+        .post-content { white-space: pre-line; }
+    </style>
+</head>
+<body class="bg-body-tertiary">
+
+<nav class="navbar navbar-expand-lg bg-body border-bottom sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-semibold" th:href="@{/shop}">
+            <i class="bi bi-book-half me-1"></i> BookStore
+        </a>
+        <div class="d-flex align-items-center gap-2">
+            <a th:href="@{/shop}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i> Trang chủ</a>
+            <a th:if="${currentUser != null}" th:href="@{/account}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-person-circle me-1"></i> <span th:text="${currentUser.fullName}">Tài khoản</span>
+            </a>
+            <a th:if="${currentUser == null}" th:href="@{/login}" class="btn btn-dark btn-sm">Đăng nhập</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4" style="max-width: 860px;">
+    <div class="mb-4">
+        <h4 class="fw-semibold mb-1"><i class="bi bi-chat-dots me-2"></i>Diễn đàn Độc giả</h4>
+        <p class="text-body-secondary mb-0">Nơi giao lưu, review sách và chia sẻ câu chuyện cùng cộng đồng BookStore.</p>
+    </div>
+
+    <!-- Thông báo -->
+    <div th:if="${successMessage != null}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMessage != null}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Form đăng bài (chỉ hiện khi đã đăng nhập) -->
+    <div th:if="${currentUser != null}" class="card mb-4">
+        <div class="card-body">
+            <h6 class="fw-semibold mb-3">Tạo chủ đề thảo luận mới</h6>
+            <form th:action="@{/forum/post}" method="post">
+                <div class="mb-2">
+                    <input type="text" name="title" class="form-control form-control-sm" placeholder="Tiêu đề bài viết..." required>
+                </div>
+                <div class="mb-3">
+                    <textarea name="content" rows="3" class="form-control form-control-sm" placeholder="Chia sẻ cảm nhận hoặc câu chuyện của bạn..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-dark btn-sm">
+                    <i class="bi bi-send me-1"></i> Đăng bài
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Thông báo cho khách chưa đăng nhập -->
+    <div th:if="${currentUser == null}" class="alert alert-secondary d-flex justify-content-between align-items-center mb-4">
+        <span><i class="bi bi-info-circle me-2"></i>Đăng nhập tài khoản để đăng bài và bình luận cùng mọi người.</span>
+        <a th:href="@{/login}" class="btn btn-dark btn-sm">Đăng nhập ngay</a>
+    </div>
+
+    <!-- Danh sách bài viết -->
+    <div th:if="${posts.empty}" class="text-center py-5 bg-body border rounded text-body-secondary">
+        <i class="bi bi-chat-square-text fs-1 d-block mb-2"></i>
+        Chưa có bài thảo luận nào. Hãy là người đầu tiên mở lời!
+    </div>
+
+    <div th:each="post : ${posts}" class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <h6 class="fw-semibold mb-1" th:text="${post.title}">Tiêu đề</h6>
+                    <small class="text-body-secondary">
+                        <i class="bi bi-person-circle me-1"></i>
+                        <strong th:text="${post.user.fullName}">Tác giả</strong>
+                        <span th:if="${'ADMIN'.equalsIgnoreCase(post.user.role)}" class="badge bg-danger ms-1">ADMIN</span>
+                        ·
+                        <span th:text="${#temporals.format(post.createdAt, 'dd/MM/yyyy HH:mm')}">Thời gian</span>
+                    </small>
+                </div>
+                <!-- Nút xóa cho chủ bài hoặc Admin -->
+                <form th:if="${currentUser != null and (currentUser.id == post.user.id or 'ADMIN'.equalsIgnoreCase(currentUser.role))}"
+                      th:action="@{/forum/post/delete/{id}(id=${post.id})}" method="post"
+                      onsubmit="return confirm('Xóa bài viết này?');">
+                    <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2" title="Xóa bài">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+            </div>
+
+            <p class="post-content mb-3" th:text="${post.content}">Nội dung bài viết</p>
+
+            <!-- Khu vực bình luận -->
+            <div class="border-top pt-3">
+                <div class="small fw-semibold text-body-secondary mb-2">
+                    <i class="bi bi-chat-left-text me-1"></i> Bình luận (<span th:text="${post.comments.size()}">0</span>)
+                </div>
+
+                <div th:each="cmt : ${post.comments}" class="bg-body-tertiary rounded p-2 mb-2">
+                    <div class="d-flex justify-content-between small">
+                        <span>
+                            <strong th:text="${cmt.user.fullName}">Người bình luận</strong>
+                            <span th:if="${'ADMIN'.equalsIgnoreCase(cmt.user.role)}" class="badge bg-danger ms-1">ADMIN</span>
+                        </span>
+                        <span class="text-body-secondary" th:text="${#temporals.format(cmt.createdAt, 'dd/MM HH:mm')}">Giờ</span>
+                    </div>
+                    <div class="mt-1" th:text="${cmt.content}">Nội dung bình luận</div>
+                </div>
+
+                <!-- Form gửi bình luận -->
+                <form th:if="${currentUser != null}" th:action="@{/forum/comment}" method="post" class="d-flex gap-2 mt-2">
+                    <input type="hidden" name="postId" th:value="${post.id}">
+                    <input type="text" name="content" class="form-control form-control-sm" placeholder="Viết bình luận..." required>
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">Gửi</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
