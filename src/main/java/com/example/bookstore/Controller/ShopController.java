@@ -3,31 +3,31 @@ package com.example.bookstore.Controller;
 import com.example.bookstore.Entity.Books;
 import com.example.bookstore.Entity.Orders;
 import com.example.bookstore.Entity.User;
+import com.example.bookstore.Entity.ViewHistory;
+import com.example.bookstore.Repository.OrdersRepository;
 import com.example.bookstore.Repository.UserRepository;
+import com.example.bookstore.Repository.ViewHistoryRepository;
 import com.example.bookstore.Response.CartItem;
 import com.example.bookstore.Service.BooksService;
 import com.example.bookstore.Service.CategoriesService;
+import com.example.bookstore.Service.CultivationHelper;
 import com.example.bookstore.Service.OrdersService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import com.example.bookstore.Entity.ViewHistory;
-import com.example.bookstore.Repository.ViewHistoryRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import java.time.LocalDateTime;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Controller
 @RequestMapping("/shop")
 public class ShopController {
-
-    @Autowired
-    private ViewHistoryRepository viewHistoryRepository;
 
     @Autowired
     private BooksService booksService;
@@ -39,7 +39,13 @@ public class ShopController {
     private OrdersService ordersService;
 
     @Autowired
+    private OrdersRepository ordersRepository;
+
+    @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ViewHistoryRepository viewHistoryRepository;
 
     @SuppressWarnings("unchecked")
     private Map<Integer, Integer> getCartFromSession(HttpSession session) {
@@ -57,18 +63,26 @@ public class ShopController {
     }
 
     @GetMapping
+    @Transactional(readOnly = true)
     public String shopCatalog(@RequestParam(value = "keyword", required = false) String keyword,
                               @RequestParam(value = "categoryId", required = false) Integer categoryId,
                               Model model,
                               HttpSession session) {
         List<Books> books = booksService.searchAndFilter(keyword, categoryId);
+        User currentUser = (User) session.getAttribute("currentUser");
+
+        if (currentUser != null) {
+            User freshUser = userRepository.findById(currentUser.getId()).orElse(currentUser);
+            model.addAttribute("currentRealm", CultivationHelper.calculateForUser(
+                    freshUser, ordersService.getOrdersByUserId(freshUser.getId())));
+        }
 
         model.addAttribute("books", books);
         model.addAttribute("categories", categoriesService.getAllCategories());
         model.addAttribute("selectedCategory", categoryId);
         model.addAttribute("keyword", keyword);
         model.addAttribute("cartCount", getCartItemCount(session));
-        model.addAttribute("currentUser", session.getAttribute("currentUser"));
+        model.addAttribute("currentUser", currentUser);
 
         return "Shop";
     }
@@ -82,7 +96,7 @@ public class ShopController {
             return "redirect:/shop";
         }
 
-
+        // Lưu lịch sử xem nếu đã đăng nhập
         User currentUser = (User) session.getAttribute("currentUser");
         if (currentUser != null) {
             Optional<ViewHistory> existing = viewHistoryRepository.findByUserIdAndBookId(currentUser.getId(), book.getId());
@@ -110,6 +124,29 @@ public class ShopController {
         return "BookDetail";
     }
 
+    @GetMapping("/history")
+    public String viewHistory(@RequestParam(value = "page", defaultValue = "1") int page,
+                              Model model,
+                              HttpSession session) {
+        User currentUser = (User) session.getAttribute("currentUser");
+        if (currentUser == null) {
+            return "redirect:/login?required=true";
+        }
+
+        int pageIndex = Math.max(0, page - 1);
+        Page<ViewHistory> historyPage = viewHistoryRepository.findByUserIdOrderByViewedAtDesc(
+                currentUser.getId(), PageRequest.of(pageIndex, 10)
+        );
+
+        model.addAttribute("historyPage", historyPage);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", historyPage.getTotalPages());
+        model.addAttribute("cartCount", getCartItemCount(session));
+        model.addAttribute("currentUser", currentUser);
+
+        return "History";
+    }
+
     @PostMapping("/cart/add")
     public String addToCart(@RequestParam("bookId") Integer bookId,
                             @RequestParam(value = "quantity", defaultValue = "1") int quantity,
@@ -126,7 +163,7 @@ public class ShopController {
             int currentQty = cart.getOrDefault(bookId, 0);
             int newQty = Math.min(book.getQuantity(), currentQty + Math.max(1, quantity));
             cart.put(bookId, newQty);
-            redirectAttributes.addFlashAttribute("successMessage", "Đã thêm \"" + book.getTitle() + "\" vào giỏ hàng!");
+            redirectAttributes.addFlashAttribute("successMessage", "Đã thêm \"" + book.getTitle() + "\" vào kệ sách!");
         }
 
         if (redirectUrl != null && !redirectUrl.isEmpty()) {
@@ -184,6 +221,7 @@ public class ShopController {
     }
 
     @GetMapping("/checkout")
+    @Transactional(readOnly = true)
     public String showCheckout(Model model, HttpSession session) {
         Map<Integer, Integer> cart = getCartFromSession(session);
         if (cart.isEmpty()) {
@@ -203,9 +241,20 @@ public class ShopController {
         }
 
         User currentUser = (User) session.getAttribute("currentUser");
+        CultivationHelper.RealmInfo realm = (currentUser != null)
+                ? CultivationHelper.calculateForUser(
+                userRepository.findById(currentUser.getId()).orElse(currentUser),
+                ordersService.getOrdersByUserId(currentUser.getId()))
+                : CultivationHelper.calculateRealm(0, 0);
+
+        double discountAmount = Math.round(totalAmount * realm.discountPercent / 100.0);
+        double finalAmount = Math.max(0, totalAmount - discountAmount);
 
         model.addAttribute("cartItems", cartItems);
         model.addAttribute("totalAmount", totalAmount);
+        model.addAttribute("realm", realm);
+        model.addAttribute("discountAmount", discountAmount);
+        model.addAttribute("finalAmount", finalAmount);
         model.addAttribute("cartCount", getCartItemCount(session));
         model.addAttribute("currentUser", currentUser);
 
@@ -213,6 +262,7 @@ public class ShopController {
     }
 
     @PostMapping("/checkout")
+    @Transactional
     public String processCheckout(@RequestParam("fullName") String fullName,
                                   @RequestParam("phone") String phone,
                                   @RequestParam("address") String address,
@@ -221,17 +271,19 @@ public class ShopController {
                                   RedirectAttributes redirectAttributes) {
         Map<Integer, Integer> cart = getCartFromSession(session);
         if (cart.isEmpty()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Giỏ hàng rỗng!");
+            redirectAttributes.addFlashAttribute("errorMessage", "Kệ sách rỗng!");
             return "redirect:/shop";
         }
 
         User currentUser = (User) session.getAttribute("currentUser");
         Integer userId = null;
+        CultivationHelper.RealmInfo realm = CultivationHelper.calculateRealm(0, 0);
 
         if (currentUser != null) {
-            userId = currentUser.getId();
+            User freshUser = userRepository.findById(currentUser.getId()).orElse(currentUser);
+            userId = freshUser.getId();
+            realm = CultivationHelper.calculateForUser(freshUser, ordersService.getOrdersByUserId(userId));
         } else {
-            // Nếu người mua chưa có tài khoản, tìm hoặc tạo tài khoản khách mặc định
             Optional<User> defaultUserOpt = userRepository.findByUsername("khachhang");
             if (defaultUserOpt.isPresent()) {
                 userId = defaultUserOpt.get().getId();
@@ -246,7 +298,14 @@ public class ShopController {
         try {
             Orders order = ordersService.createOrder(userId, fullShippingAddress, cart);
 
-            // Xóa sạch giỏ hàng sau khi đặt thành công
+            // Áp dụng giảm giá theo Cảnh giới Tu tiên
+            if (realm.discountPercent > 0) {
+                double discount = Math.round(order.getTotalAmount() * realm.discountPercent / 100.0);
+                order.setTotalAmount(Math.max(0, order.getTotalAmount() - discount));
+                order.setShippingAddress(order.getShippingAddress() + " [Ưu đãi " + realm.name + " -" + realm.discountPercent + "%]");
+                ordersRepository.save(order);
+            }
+
             session.removeAttribute("cart");
 
             redirectAttributes.addFlashAttribute("successMessage", "Đặt hàng thành công!");
@@ -287,29 +346,4 @@ public class ShopController {
 
         return "MyOrders";
     }
-
-    @GetMapping("/history")
-    public String viewHistory(@RequestParam(value = "page", defaultValue = "1") int page,
-                              Model model,
-                              HttpSession session) {
-        User currentUser = (User) session.getAttribute("currentUser");
-        if (currentUser == null) {
-            return "redirect:/login?required=true";
-        }
-
-        int pageIndex = Math.max(0, page - 1);
-        Page<ViewHistory> historyPage = viewHistoryRepository.findByUserIdOrderByViewedAtDesc(
-                currentUser.getId(), PageRequest.of(pageIndex, 10)
-        );
-
-        model.addAttribute("historyPage", historyPage);
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", historyPage.getTotalPages());
-        model.addAttribute("cartCount", getCartItemCount(session));
-        model.addAttribute("currentUser", currentUser);
-
-        return "History";
-    }
-    
 }
-

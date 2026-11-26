@@ -31,4 +31,8 @@ public class User {
 
     @Column(name = "role", length = 20)
     private String role;
+
+    @Column(name = "custom_realm", length = 50)
+    private String customRealm;
+    
 }

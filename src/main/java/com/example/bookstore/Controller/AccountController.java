@@ -35,14 +35,12 @@ public class AccountController {
             return "redirect:/login?required=true";
         }
 
-
         User currentUser = userRepository.findById(sessionUser.getId()).orElse(sessionUser);
         List<Orders> orders = ordersService.getOrdersByUserId(currentUser.getId());
 
         double totalSpent = 0.0;
         int totalBooksBought = 0;
 
-       
         Map<Integer, Books> boughtBookMap = new LinkedHashMap<>();
         Map<Integer, Integer> boughtQtyMap = new HashMap<>();
 
@@ -65,7 +63,9 @@ public class AccountController {
             }
         }
 
-        CultivationHelper.RealmInfo realm = CultivationHelper.calculateRealm(totalSpent, totalBooksBought);
+        CultivationHelper.RealmInfo realm = CultivationHelper.calculateRealm(
+                totalSpent, totalBooksBought, currentUser.getCustomRealm()
+        );
 
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("realm", realm);
@@ -94,7 +94,7 @@ public class AccountController {
             user.setFullName(fullName.trim());
             user.setEmail(email.trim());
             userRepository.save(user);
-            session.setAttribute("currentUser", user); // Cập nhật lại session
+            session.setAttribute("currentUser", user);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thông tin cá nhân thành công!");
         }
         return "redirect:/account";

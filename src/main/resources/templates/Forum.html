@@ -6,6 +6,7 @@
     <title>Diễn đàn BookStore</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/realm-styles.css}">
     <script>
         (function () {
             const savedTheme = localStorage.getItem('bookstore-theme') || 'light';
@@ -50,7 +51,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 
-    <!-- Form đăng bài (chỉ hiện khi đã đăng nhập) -->
+    <!-- Form đăng bài -->
     <div th:if="${currentUser != null}" class="card mb-4">
         <div class="card-body">
             <h6 class="fw-semibold mb-3">Tạo chủ đề thảo luận mới</h6>
@@ -74,26 +75,35 @@
         <a th:href="@{/login}" class="btn btn-dark btn-sm">Đăng nhập ngay</a>
     </div>
 
-    <!-- Danh sách bài viết -->
+    <!-- Danh sách bài viết (khung & tên đổi theo cảnh giới) -->
     <div th:if="${posts.empty}" class="text-center py-5 bg-body border rounded text-body-secondary">
         <i class="bi bi-chat-square-text fs-1 d-block mb-2"></i>
         Chưa có bài thảo luận nào. Hãy là người đầu tiên mở lời!
     </div>
 
-    <div th:each="post : ${posts}" class="card mb-3">
+    <div th:each="post : ${posts}"
+         th:with="postRealm=${userRealmMap[post.user.id]}"
+         class="card mb-3"
+         th:classappend="${postRealm != null ? postRealm.frameClass : ''}">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-start mb-2">
                 <div>
-                    <h6 class="fw-semibold mb-1" th:text="${post.title}">Tiêu đề</h6>
+                    <h6 class="fw-semibold mb-1">
+                        <i th:if="${postRealm != null and postRealm.highRealm}" class="bi bi-stars text-warning me-1" title="Bài viết của cao thủ cảnh giới cao"></i>
+                        <span th:text="${post.title}">Tiêu đề</span>
+                    </h6>
                     <small class="text-body-secondary">
                         <i class="bi bi-person-circle me-1"></i>
-                        <strong th:text="${post.user.fullName}">Tác giả</strong>
+                        <strong th:classappend="${postRealm != null ? postRealm.nameClass : ''}" th:text="${post.user.fullName}">Tác giả</strong>
+                        <span th:if="${postRealm != null}"
+                              class="badge ms-1"
+                              th:classappend="${postRealm.badgeClass}"
+                              th:text="${postRealm.name}">Phàm Nhân</span>
                         <span th:if="${'ADMIN'.equalsIgnoreCase(post.user.role)}" class="badge bg-danger ms-1">ADMIN</span>
                         ·
                         <span th:text="${#temporals.format(post.createdAt, 'dd/MM/yyyy HH:mm')}">Thời gian</span>
                     </small>
                 </div>
-                <!-- Nút xóa cho chủ bài hoặc Admin -->
                 <form th:if="${currentUser != null and (currentUser.id == post.user.id or 'ADMIN'.equalsIgnoreCase(currentUser.role))}"
                       th:action="@{/forum/post/delete/{id}(id=${post.id})}" method="post"
                       onsubmit="return confirm('Xóa bài viết này?');">
@@ -111,10 +121,16 @@
                     <i class="bi bi-chat-left-text me-1"></i> Bình luận (<span th:text="${post.comments.size()}">0</span>)
                 </div>
 
-                <div th:each="cmt : ${post.comments}" class="bg-body-tertiary rounded p-2 mb-2">
+                <div th:each="cmt : ${post.comments}"
+                     th:with="cmtRealm=${userRealmMap[cmt.user.id]}"
+                     class="bg-body-tertiary rounded p-2 mb-2">
                     <div class="d-flex justify-content-between small">
                         <span>
-                            <strong th:text="${cmt.user.fullName}">Người bình luận</strong>
+                            <strong th:classappend="${cmtRealm != null ? cmtRealm.nameClass : ''}" th:text="${cmt.user.fullName}">Người bình luận</strong>
+                            <span th:if="${cmtRealm != null}"
+                                  class="badge ms-1"
+                                  th:classappend="${cmtRealm.badgeClass}"
+                                  th:text="${cmtRealm.name}">Phàm Nhân</span>
                             <span th:if="${'ADMIN'.equalsIgnoreCase(cmt.user.role)}" class="badge bg-danger ms-1">ADMIN</span>
                         </span>
                         <span class="text-body-secondary" th:text="${#temporals.format(cmt.createdAt, 'dd/MM HH:mm')}">Giờ</span>

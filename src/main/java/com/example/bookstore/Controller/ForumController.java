@@ -5,14 +5,20 @@ import com.example.bookstore.Entity.ForumPost;
 import com.example.bookstore.Entity.User;
 import com.example.bookstore.Repository.ForumCommentRepository;
 import com.example.bookstore.Repository.ForumPostRepository;
+import com.example.bookstore.Service.CultivationHelper;
+import com.example.bookstore.Service.OrdersService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Controller
@@ -25,9 +31,26 @@ public class ForumController {
     @Autowired
     private ForumCommentRepository forumCommentRepository;
 
+    @Autowired
+    private OrdersService ordersService;
+
     @GetMapping
+    @Transactional(readOnly = true)
     public String viewForum(Model model, HttpSession session) {
-        model.addAttribute("posts", forumPostRepository.findAllByOrderByCreatedAtDesc());
+        List<ForumPost> posts = forumPostRepository.findAllByOrderByCreatedAtDesc();
+        Map<Integer, CultivationHelper.RealmInfo> userRealmMap = new HashMap<>();
+
+        for (ForumPost p : posts) {
+            userRealmMap.computeIfAbsent(p.getUser().getId(),
+                    id -> CultivationHelper.calculateForUser(p.getUser(), ordersService.getOrdersByUserId(id)));
+            for (ForumComment c : p.getComments()) {
+                userRealmMap.computeIfAbsent(c.getUser().getId(),
+                        id -> CultivationHelper.calculateForUser(c.getUser(), ordersService.getOrdersByUserId(id)));
+            }
+        }
+
+        model.addAttribute("posts", posts);
+        model.addAttribute("userRealmMap", userRealmMap);
         model.addAttribute("currentUser", session.getAttribute("currentUser"));
         return "Forum";
     }
