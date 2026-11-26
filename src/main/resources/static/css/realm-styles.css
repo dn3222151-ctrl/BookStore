@@ -210,3 +210,237 @@
     -webkit-text-fill-color: transparent;
     animation: realmShine 2.5s linear infinite;
 }
+
+@keyframes realmScreenShake {
+    0%, 100% { transform: translate(0, 0); }
+    15% { transform: translate(-6px, 4px); }
+    30% { transform: translate(6px, -4px); }
+    45% { transform: translate(-5px, -3px); }
+    60% { transform: translate(5px, 3px); }
+    75% { transform: translate(-3px, 2px); }
+}
+
+.realm-shake {
+    animation: realmScreenShake 0.36s cubic-bezier(.36, .07, .19, .97) both;
+}
+
+/* ===== MÀN HÌNH CHỜ CỔ TRANG TU TIÊN (KHAI MỞ TÀNG KINH CÁC) ===== */
+.xuyenkhong-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-family: Georgia, "Times New Roman", serif;
+}
+
+/* Hai cánh cổng Tàng Kinh Các mở sang 2 bên khi kết thúc */
+.xk-door {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 50.5%;
+    z-index: 1;
+    background: radial-gradient(circle at center, #1b2421 0%, #0d1312 70%, #070a09 100%);
+    transition: transform 0.95s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.95s ease;
+}
+
+.xk-door-left {
+    left: 0;
+    border-right: 1px solid rgba(212, 175, 55, 0.45);
+    box-shadow: inset -18px 0 40px rgba(0, 0, 0, 0.65);
+}
+
+.xk-door-right {
+    right: 0;
+    border-left: 1px solid rgba(212, 175, 55, 0.45);
+    box-shadow: inset 18px 0 40px rgba(0, 0, 0, 0.65);
+}
+
+.xuyenkhong-overlay.xk-exit .xk-door-left {
+    transform: translateX(-102%);
+    opacity: 0.4;
+}
+
+.xuyenkhong-overlay.xk-exit .xk-door-right {
+    transform: translateX(102%);
+    opacity: 0.4;
+}
+
+.xuyenkhong-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    transition: opacity 0.65s ease;
+}
+
+.xuyenkhong-overlay.xk-exit .xuyenkhong-canvas,
+.xuyenkhong-overlay.xk-exit .xuyenkhong-ui,
+.xuyenkhong-overlay.xk-exit .xuyenkhong-skip {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.xuyenkhong-ui {
+    position: relative;
+    z-index: 3;
+    text-align: center;
+    padding: 2.2rem 2rem;
+    max-width: 500px;
+    width: 90%;
+    color: #f3e5c3;
+    pointer-events: none;
+    transition: opacity 0.45s ease, transform 0.55s ease;
+}
+
+.xuyenkhong-overlay.xk-exit .xuyenkhong-ui {
+    transform: scale(0.96);
+}
+
+/* Dòng chữ phụ kiểu cổ phong */
+.xuyenkhong-badge {
+    display: inline-block;
+    font-size: 0.78rem;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: #d4af37;
+    padding: 4px 16px;
+    border-top: 1px solid rgba(212, 175, 55, 0.45);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.45);
+    margin-bottom: 16px;
+}
+
+/* Tiêu đề chính kèm Ấn triện son đỏ */
+.xk-title-row {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.xuyenkhong-title {
+    font-size: 2.15rem;
+    font-weight: 700;
+    letter-spacing: 4px;
+    background: linear-gradient(180deg, #fff7d6 0%, #e6c16c 55%, #b58932 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 12px rgba(212, 175, 55, 0.35));
+}
+
+.xk-seal {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: 1.5px solid #dc2626;
+    border-radius: 3px;
+    background: rgba(153, 27, 27, 0.85);
+    color: #fef2f2;
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: 1px;
+    box-shadow: 0 0 12px rgba(220, 38, 38, 0.45), inset 0 0 4px rgba(255, 255, 255, 0.2);
+    transform: rotate(-6deg);
+}
+
+.xuyenkhong-sub {
+    font-size: 0.92rem;
+    font-style: italic;
+    color: rgba(235, 224, 198, 0.82);
+    min-height: 24px;
+    margin-bottom: 22px;
+    letter-spacing: 0.6px;
+}
+
+/* Thanh tụ linh mảnh mai kiểu nét bút vàng đồng */
+.xuyenkhong-bar-wrap {
+    width: 240px;
+    max-width: 100%;
+    height: 3px;
+    margin: 0 auto 10px;
+    background: rgba(212, 175, 55, 0.18);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.xuyenkhong-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #9a7426, #f5d98e, #fffbeb);
+    box-shadow: 0 0 10px rgba(245, 217, 142, 0.85);
+    transition: width 0.08s linear;
+}
+
+.xuyenkhong-percent {
+    font-size: 0.78rem;
+    color: #e6c16c;
+    letter-spacing: 2px;
+}
+
+/* Nút Bỏ qua kiểu ngọc bài cổ phong (không icon) */
+.xuyenkhong-skip {
+    position: fixed;
+    top: 24px;
+    right: 28px;
+    z-index: 20001;
+    background: rgba(13, 19, 18, 0.72);
+    color: #e6c16c;
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    border-radius: 2px;
+    padding: 7px 20px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.4), inset 0 0 8px rgba(212, 175, 55, 0.08);
+    transition: all 0.25s ease;
+}
+
+.xuyenkhong-skip::before,
+.xuyenkhong-skip::after {
+    content: "";
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    border-color: #d4af37;
+    border-style: solid;
+    transition: all 0.25s ease;
+}
+
+.xuyenkhong-skip::before {
+    top: -3px;
+    left: -3px;
+    border-width: 1.5px 0 0 1.5px;
+}
+
+.xuyenkhong-skip::after {
+    bottom: -3px;
+    right: -3px;
+    border-width: 0 1.5px 1.5px 0;
+}
+
+.xuyenkhong-skip:hover {
+    background: rgba(212, 175, 55, 0.18);
+    color: #fffbeb;
+    border-color: #f5d98e;
+    box-shadow: 0 0 18px rgba(212, 175, 55, 0.38);
+    transform: translateY(-1px);
+}
+
+.xuyenkhong-skip:hover::before,
+.xuyenkhong-skip:hover::after {
+    width: 11px;
+    height: 11px;
+    border-color: #fffbeb;
+}
