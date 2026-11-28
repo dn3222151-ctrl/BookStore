@@ -29,7 +29,7 @@ function getDragonTheme(level) {
 }
 
 // =========================================================================
-// 2. ÂM THANH ĐỘT PHÁ BẰNG WEB AUDIO API (CHUÔNG ĐỒNG + SẤM RỀN)
+// 2. ÂM THANH ĐỘT PHÁ BẰNG WEB AUDIO API (SẤM RỀN + CHUÔNG CỔ)
 // =========================================================================
 function playBreakthroughAudio() {
     try {
@@ -38,8 +38,7 @@ function playBreakthroughAudio() {
         const ctx = new AudioCtx();
         const now = ctx.currentTime;
 
-        // 1. TIẾNG NỔ THIÊN LÔI (Dày & to hơn: Sub-bass BÙM + Sấm rền)
-        // Lớp trầm (Sub-bass drop) tạo lực nổ êm, không vỡ tiếng
+        // 1. Tiếng nổ Thiên Lôi (Sub-bass BÙM + Sấm rền)
         const subOsc = ctx.createOscillator();
         const subGain = ctx.createGain();
         subOsc.type = 'sine';
@@ -52,7 +51,6 @@ function playBreakthroughAudio() {
         subOsc.start(now);
         subOsc.stop(now + 0.58);
 
-        // Lớp sấm rền (Filtered noise)
         const bufferSize = ctx.sampleRate * 0.95;
         const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
         const output = noiseBuffer.getChannelData(0);
@@ -76,7 +74,7 @@ function playBreakthroughAudio() {
         thunderGain.connect(ctx.destination);
         noise.start(now);
 
-        // 2. TIẾNG CHUÔNG CỔ NGÂN VANG NHẸ NHÀNG (Nở ra ngay sau tiếng nổ)
+        // 2. Tiếng chuông cổ ngân vang nhẹ nhàng
         const bellStart = now + 0.1;
         [392.0, 587.33, 783.99, 1174.66].forEach((freq, idx) => {
             const osc = ctx.createOscillator();
@@ -95,13 +93,10 @@ function playBreakthroughAudio() {
             osc.stop(bellStart + 3.3);
         });
     } catch (e) {
-
+        // Bỏ qua nếu trình duyệt chặn autoplay âm thanh
     }
 }
 
-// =========================================================================
-// 3. MÀN HÌNH CHỜ XUYÊN KHÔNG (TRẬN PHÁP TU TIÊN + HỐ ĐEN KHÔNG GIAN)
-// =========================================================================
 // =========================================================================
 // 3. MÀN HÌNH CHỜ CỔ TRANG TU TIÊN (THỦY MẶC SƠN THỦY + HOA ĐÀO + KHAI MÔN)
 // =========================================================================
@@ -152,7 +147,6 @@ function playXuyenKhongIntro(forceReplay, userId) {
     };
     window.addEventListener('resize', onResize);
 
-    // Đom đóm linh khí vàng bay nhẹ lên trời
     const spiritMotes = Array.from({ length: 48 }, () => ({
         x: Math.random() * w,
         y: Math.random() * h,
@@ -162,7 +156,6 @@ function playXuyenKhongIntro(forceReplay, userId) {
         phase: Math.random() * Math.PI * 2
     }));
 
-    // Cánh hoa đào cổ trang rơi chéo nhẹ trong gió
     const petals = Array.from({ length: 24 }, () => ({
         x: Math.random() * w,
         y: Math.random() * h,
@@ -174,7 +167,6 @@ function playXuyenKhongIntro(forceReplay, userId) {
         sway: Math.random() * Math.PI * 2
     }));
 
-    // Dải sương mù tiên cảnh trôi ngang chân núi
     const mists = Array.from({ length: 7 }, (_, i) => ({
         x: (w / 6) * i,
         y: h * (0.68 + (i % 3) * 0.08),
@@ -196,7 +188,7 @@ function playXuyenKhongIntro(forceReplay, userId) {
 
     document.getElementById('xkSkipBtn').addEventListener('click', finishIntro);
 
-    const duration = 2700; // 2.7 giây êm ái
+    const duration = 2700;
     const startTime = performance.now();
 
     function drawMountainLayer(baseY, amp, freq, phase, color) {
@@ -222,7 +214,6 @@ function playXuyenKhongIntro(forceReplay, userId) {
         ctx.save();
         ctx.translate(cx, cy);
 
-        // Vầng trăng / hào quang mờ sau chữ
         const moonGrad = ctx.createRadialGradient(0, 0, r * 0.1, 0, 0, r * 1.25);
         moonGrad.addColorStop(0, `rgba(245, 217, 142, ${0.14 + progress * 0.1})`);
         moonGrad.addColorStop(0.55, 'rgba(212, 175, 55, 0.04)');
@@ -232,7 +223,6 @@ function playXuyenKhongIntro(forceReplay, userId) {
         ctx.arc(0, 0, r * 1.25, 0, Math.PI * 2);
         ctx.fill();
 
-        // Vòng cổ phong nét mảnh xoay cực chậm
         ctx.save();
         ctx.rotate(now * 0.00022);
         ctx.strokeStyle = 'rgba(212, 175, 55, 0.32)';
@@ -248,7 +238,6 @@ function playXuyenKhongIntro(forceReplay, userId) {
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // 8 quẻ Bát Quái mảnh, nhẹ nhàng quanh vòng tròn
         for (let i = 0; i < 8; i++) {
             ctx.save();
             ctx.rotate((i * Math.PI) / 4);
@@ -274,7 +263,6 @@ function playXuyenKhongIntro(forceReplay, userId) {
         }
         ctx.restore();
 
-        // Vòng trong xoay ngược thật chậm
         ctx.save();
         ctx.rotate(-now * 0.0003);
         ctx.strokeStyle = 'rgba(212, 175, 55, 0.18)';
@@ -295,15 +283,11 @@ function playXuyenKhongIntro(forceReplay, userId) {
 
         ctx.clearRect(0, 0, w, h);
 
-        // 1. Vòng cổ phong mờ phía sau tiêu đề
         drawAncientSealRing(now, progress);
-
-        // 2. Ba lớp núi thủy mặc (Ink-wash mountains)
         drawMountainLayer(h * 0.77, h * 0.09, 0.0022, 0.8, 'rgba(22, 34, 31, 0.55)');
         drawMountainLayer(h * 0.84, h * 0.075, 0.0031, 2.5, 'rgba(14, 22, 20, 0.72)');
         drawMountainLayer(h * 0.91, h * 0.055, 0.0042, 4.1, 'rgba(8, 13, 12, 0.88)');
 
-        // 3. Mây tiên / sương mù trôi chậm
         for (let i = 0; i < mists.length; i++) {
             const m = mists[i];
             m.x += m.speed;
@@ -321,7 +305,6 @@ function playXuyenKhongIntro(forceReplay, userId) {
             ctx.restore();
         }
 
-        // 4. Đom đóm linh khí vàng lơ lửng
         for (let i = 0; i < spiritMotes.length; i++) {
             const s = spiritMotes[i];
             s.y += s.vy;
@@ -340,7 +323,6 @@ function playXuyenKhongIntro(forceReplay, userId) {
         }
         ctx.shadowBlur = 0;
 
-        // 5. Cánh hoa đào rơi nhẹ
         for (let i = 0; i < petals.length; i++) {
             const p = petals[i];
             p.x += p.vx + Math.sin(now * 0.002 + p.sway) * 0.45;
@@ -363,7 +345,6 @@ function playXuyenKhongIntro(forceReplay, userId) {
             ctx.restore();
         }
 
-        // 6. Cập nhật tiến trình & lời dẫn cổ trang
         barFill.style.width = pct + '%';
         percentEl.textContent = pct + '%';
         if (pct < 38) {
@@ -410,9 +391,9 @@ function drawLightningBolt(ctx, x1, y1, x2, y2, displace, color, width) {
 }
 
 // =========================================================================
-// 5. HÀM VẼ THẦN LONG PHƯƠNG ĐÔNG (THÂN LIỀN KHỐI, VẢY, SỪNG HƯƠU, 4 CHÂN)
+// 5. HÀM VẼ THẦN LONG PHƯƠNG ĐÔNG (NÂNG CẤP: LINH QUANG, VẢY BÓNG, LONG TỨC)
 // =========================================================================
-function drawEasternDragon(ctx, segments, theme, scale, time) {
+function drawEasternDragon(ctx, segments, theme, scale, time, isRoaring = false) {
     const n = segments.length;
     if (n < 6) return;
 
@@ -427,10 +408,10 @@ function drawEasternDragon(ctx, segments, theme, scale, time) {
         angles[i] = Math.atan2(prev.y - next.y, prev.x - next.x);
 
         const t = i / (n - 1);
-        const profile = t < 0.12
-            ? 0.72 + (t / 0.12) * 0.28
-            : Math.pow(1 - (t - 0.12) / 0.88, 0.85);
-        radii[i] = Math.max(1.2 * scale, 13.5 * scale * profile);
+        const profile = t < 0.1
+            ? 0.78 + (t / 0.1) * 0.28
+            : Math.pow(1 - (t - 0.1) / 0.9, 0.82);
+        radii[i] = Math.max(1.4 * scale, 14.5 * scale * profile);
 
         const perp = angles[i] + Math.PI / 2;
         leftPts[i] = {
@@ -447,71 +428,92 @@ function drawEasternDragon(ctx, segments, theme, scale, time) {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
-    // Chùm lông đuôi rực lửa
+    // 1. DẢI LỤA LINH QUANG QUẤN QUANH THÂN RỒNG
+    ctx.save();
+    ctx.beginPath();
+    for (let i = 2; i < n - 1; i++) {
+        const wave = Math.sin(time * 0.008 - i * 0.45) * radii[i] * 1.65;
+        const perp = angles[i] + Math.PI / 2;
+        const rx = segments[i].x + Math.cos(perp) * wave;
+        const ry = segments[i].y + Math.sin(perp) * wave;
+        if (i === 2) ctx.moveTo(rx, ry);
+        else ctx.lineTo(rx, ry);
+    }
+    ctx.strokeStyle = theme.light;
+    ctx.lineWidth = 2.4 * scale;
+    ctx.shadowColor = theme.glow;
+    ctx.shadowBlur = 16 * scale;
+    ctx.globalAlpha = isRoaring ? 0.85 : 0.48;
+    ctx.stroke();
+    ctx.restore();
+
+    // 2. CHÙM LÔNG ĐUÔI RỰC LỬA
     const tail = segments[n - 1];
     const tailAngle = angles[n - 1] + Math.PI;
     ctx.save();
     ctx.translate(tail.x, tail.y);
     ctx.rotate(tailAngle);
     ctx.shadowColor = theme.glow;
-    ctx.shadowBlur = 18 * scale;
-    for (let f = -2; f <= 2; f++) {
-        const len = (24 - Math.abs(f) * 4) * scale;
-        const sway = Math.sin(time * 0.012 + f) * 5 * scale;
+    ctx.shadowBlur = 22 * scale;
+    for (let f = -3; f <= 3; f++) {
+        const len = (28 - Math.abs(f) * 3.8) * scale;
+        const sway = Math.sin(time * 0.013 + f * 0.8) * 6 * scale;
         ctx.beginPath();
         ctx.moveTo(0, 0);
-        ctx.quadraticCurveTo(len * 0.5, f * 5 * scale + sway, len, f * 3 * scale - sway * 0.6);
-        ctx.strokeStyle = f === 0 ? theme.belly : theme.light;
-        ctx.lineWidth = (3.2 - Math.abs(f) * 0.5) * scale;
-        ctx.globalAlpha = 0.85;
+        ctx.quadraticCurveTo(len * 0.5, f * 5.2 * scale + sway, len, f * 3.5 * scale - sway * 0.6);
+        ctx.strokeStyle = f === 0 ? '#ffffff' : (Math.abs(f) === 1 ? theme.belly : theme.light);
+        ctx.lineWidth = (3.4 - Math.abs(f) * 0.4) * scale;
+        ctx.globalAlpha = 0.9;
         ctx.stroke();
     }
     ctx.restore();
 
-    // Bốn chân rồng & móng vuốt
+    // 3. BỐN CHÂN RỒNG & MÓNG VUỐT SẮC NHỌN
     const legIndices = [Math.floor(n * 0.24), Math.floor(n * 0.62)];
     legIndices.forEach((idx, legOrder) => {
         if (idx <= 1 || idx >= n - 2) return;
         const base = segments[idx];
         const ang = angles[idx];
-        const legScale = scale * (legOrder === 0 ? 1.0 : 0.82);
+        const legScale = scale * (legOrder === 0 ? 1.05 : 0.85);
 
         [-1, 1].forEach(side => {
-            const swing = Math.sin(time * 0.008 + legOrder * 2 + side) * 0.22;
+            const swing = Math.sin(time * 0.008 + legOrder * 2 + side) * 0.25;
             ctx.save();
             ctx.translate(base.x, base.y);
             ctx.rotate(ang);
 
             const hipY = side * radii[idx] * 0.7;
-            const kneeX = (-7 + Math.cos(swing) * 3) * legScale;
-            const kneeY = side * (radii[idx] + 10 * legScale);
-            const pawX = (7 + Math.sin(swing) * 4) * legScale;
-            const pawY = side * (radii[idx] + 15 * legScale);
+            const kneeX = (-8 + Math.cos(swing) * 3.5) * legScale;
+            const kneeY = side * (radii[idx] + 11 * legScale);
+            const pawX = (8 + Math.sin(swing) * 4.5) * legScale;
+            const pawY = side * (radii[idx] + 16 * legScale);
 
             ctx.beginPath();
             ctx.moveTo(0, hipY);
             ctx.quadraticCurveTo(kneeX, kneeY, pawX, pawY);
             ctx.strokeStyle = theme.mid;
-            ctx.lineWidth = 4.2 * legScale;
+            ctx.lineWidth = 4.6 * legScale;
             ctx.shadowColor = theme.glow;
-            ctx.shadowBlur = 8 * legScale;
+            ctx.shadowBlur = 10 * legScale;
             ctx.stroke();
 
+            // Lông khuỷu chân bay ngược
             ctx.beginPath();
             ctx.moveTo(kneeX, kneeY);
-            ctx.lineTo(kneeX - 9 * legScale, kneeY + side * 4 * legScale);
+            ctx.quadraticCurveTo(kneeX - 7 * legScale, kneeY + side * 6 * legScale, kneeX - 13 * legScale, kneeY + side * 3 * legScale);
             ctx.strokeStyle = theme.mane;
-            ctx.lineWidth = 1.8 * legScale;
+            ctx.lineWidth = 2.0 * legScale;
             ctx.stroke();
 
-            ctx.strokeStyle = theme.belly;
+            // 4 móng vuốt rồng
+            ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = 1.6 * legScale;
-            [-0.4, 0, 0.4].forEach(clawSpread => {
+            [-0.45, -0.15, 0.15, 0.45].forEach(clawSpread => {
                 ctx.beginPath();
                 ctx.moveTo(pawX, pawY);
                 ctx.lineTo(
-                    pawX + Math.cos(clawSpread) * 7 * legScale,
-                    pawY + (Math.sin(clawSpread) * 5 + side * 2) * legScale
+                    pawX + Math.cos(clawSpread) * 8 * legScale,
+                    pawY + (Math.sin(clawSpread) * 5.5 + side * 2) * legScale
                 );
                 ctx.stroke();
             });
@@ -519,7 +521,7 @@ function drawEasternDragon(ctx, segments, theme, scale, time) {
         });
     });
 
-    // Thân rồng liền khối
+    // 4. THÂN RỒNG LIỀN KHỐI + ÁNH SÁNG SỐNG LƯNG
     ctx.beginPath();
     ctx.moveTo(leftPts[0].x, leftPts[0].y);
     for (let i = 1; i < n; i++) ctx.lineTo(leftPts[i].x, leftPts[i].y);
@@ -530,23 +532,24 @@ function drawEasternDragon(ctx, segments, theme, scale, time) {
         segments[0].x, segments[0].y,
         segments[n - 1].x, segments[n - 1].y
     );
-    bodyGrad.addColorStop(0, theme.light);
-    bodyGrad.addColorStop(0.25, theme.mid);
-    bodyGrad.addColorStop(0.75, theme.core);
-    bodyGrad.addColorStop(1, theme.mid);
+    bodyGrad.addColorStop(0, theme.belly);
+    bodyGrad.addColorStop(0.18, theme.light);
+    bodyGrad.addColorStop(0.55, theme.mid);
+    bodyGrad.addColorStop(0.85, theme.core);
+    bodyGrad.addColorStop(1, theme.light);
 
     ctx.fillStyle = bodyGrad;
     ctx.shadowColor = theme.glow;
-    ctx.shadowBlur = 18 * scale;
+    ctx.shadowBlur = (isRoaring ? 28 : 20) * scale;
     ctx.fill();
 
-    ctx.strokeStyle = theme.light;
-    ctx.lineWidth = 1.2 * scale;
-    ctx.globalAlpha = 0.75;
+    ctx.strokeStyle = theme.belly;
+    ctx.lineWidth = 1.4 * scale;
+    ctx.globalAlpha = 0.8;
     ctx.stroke();
     ctx.globalAlpha = 1;
 
-    // Vảy xếp lớp & vây sống lưng
+    // 5. VẢY XẾP LỚP 3D & VÂY SỐNG LƯNG SẮC BÉN
     ctx.shadowBlur = 0;
     for (let i = n - 3; i >= 2; i--) {
         const s = segments[i];
@@ -555,144 +558,164 @@ function drawEasternDragon(ctx, segments, theme, scale, time) {
         ctx.translate(s.x, s.y);
         ctx.rotate(angles[i]);
 
+        // Vảy rồng 2 lớp tạo chiều sâu
         ctx.beginPath();
-        ctx.arc(0, 0, r * 0.72, -Math.PI * 0.65, Math.PI * 0.65);
-        ctx.strokeStyle = i % 2 === 0 ? theme.light : theme.belly;
-        ctx.lineWidth = Math.max(0.8, 1.3 * scale);
-        ctx.globalAlpha = 0.55;
+        ctx.arc(0, 0, r * 0.78, -Math.PI * 0.68, Math.PI * 0.68);
+        ctx.strokeStyle = i % 2 === 0 ? theme.belly : theme.light;
+        ctx.lineWidth = Math.max(0.9, 1.45 * scale);
+        ctx.globalAlpha = 0.68;
         ctx.stroke();
 
-        if (i < n - 4) {
-            const finWave = Math.sin(time * 0.015 - i * 0.5) * 2.5 * scale;
+        // Gai sống lưng sắc nhọn uốn lượn
+        if (i < n - 3) {
+            const finWave = Math.sin(time * 0.016 - i * 0.5) * 3.2 * scale;
             ctx.beginPath();
-            ctx.moveTo(r * 0.25, 0);
-            ctx.quadraticCurveTo(-r * 0.35, finWave, -r * 1.15, finWave * 1.2);
-            ctx.strokeStyle = theme.mane;
-            ctx.lineWidth = Math.max(1, 2.1 * scale * (1 - i / n));
-            ctx.globalAlpha = 0.85;
+            ctx.moveTo(r * 0.35, 0);
+            ctx.quadraticCurveTo(-r * 0.3, finWave, -r * 1.35, finWave * 1.1);
+            ctx.strokeStyle = i % 3 === 0 ? '#ffffff' : theme.mane;
+            ctx.lineWidth = Math.max(1.1, 2.3 * scale * (1 - i / n));
+            ctx.globalAlpha = 0.9;
             ctx.stroke();
         }
         ctx.restore();
     }
 
-    // Đầu rồng Phương Đông
+    // 6. ĐẦU THẦN LONG PHƯƠNG ĐÔNG
     const head = segments[0];
     ctx.save();
     ctx.translate(head.x, head.y);
     ctx.rotate(angles[0]);
     ctx.globalAlpha = 1;
 
-    // Bờm rồng
+    // Luồng Long Tức phun ra khi gầm
+    if (isRoaring) {
+        const breathGrad = ctx.createRadialGradient(28 * scale, 0, 2 * scale, 48 * scale, 0, 38 * scale);
+        breathGrad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+        breathGrad.addColorStop(0.35, theme.light);
+        breathGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = breathGrad;
+        ctx.beginPath();
+        ctx.moveTo(22 * scale, 0);
+        ctx.lineTo(74 * scale, -18 * scale);
+        ctx.lineTo(74 * scale, 18 * scale);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+
+    // Bờm rồng dày & rực sáng
     ctx.shadowColor = theme.glow;
-    ctx.shadowBlur = 14 * scale;
-    for (let m = -4; m <= 4; m++) {
-        const spread = m * 0.26;
-        const len = (22 - Math.abs(m) * 1.8) * scale;
-        const wave = Math.sin(time * 0.014 + m) * 3.5 * scale;
+    ctx.shadowBlur = 18 * scale;
+    for (let m = -5; m <= 5; m++) {
+        const spread = m * 0.24;
+        const len = (26 - Math.abs(m) * 1.8) * scale;
+        const wave = Math.sin(time * 0.015 + m) * 4 * scale;
         ctx.beginPath();
         ctx.moveTo(-4 * scale, m * 2 * scale);
         ctx.quadraticCurveTo(
-            -len * 0.6, m * 5 * scale + wave,
-            -len, Math.sin(spread) * len * 0.85 - wave * 0.5
+            -len * 0.6, m * 5.2 * scale + wave,
+            -len, Math.sin(spread) * len * 0.88 - wave * 0.5
         );
-        ctx.strokeStyle = Math.abs(m) % 2 === 0 ? theme.mane : theme.light;
-        ctx.lineWidth = (2.8 - Math.abs(m) * 0.3) * scale;
+        ctx.strokeStyle = m === 0 ? '#ffffff' : (Math.abs(m) % 2 === 0 ? theme.mane : theme.light);
+        ctx.lineWidth = (3.0 - Math.abs(m) * 0.28) * scale;
         ctx.stroke();
     }
 
-    // Sừng hươu phân nhánh
-    ctx.strokeStyle = theme.belly;
-    ctx.lineWidth = 2.6 * scale;
+    // Sừng hươu uy nghiêm phân nhánh
+    ctx.strokeStyle = '#fffbeb';
+    ctx.lineWidth = 2.8 * scale;
     ctx.shadowColor = theme.light;
-    ctx.shadowBlur = 10 * scale;
+    ctx.shadowBlur = 14 * scale;
     [-1, 1].forEach(side => {
         ctx.beginPath();
         ctx.moveTo(-2 * scale, side * 5 * scale);
         ctx.bezierCurveTo(
-            -12 * scale, side * 14 * scale,
-            -22 * scale, side * 18 * scale,
-            -32 * scale, side * 12 * scale
+            -13 * scale, side * 15 * scale,
+            -24 * scale, side * 20 * scale,
+            -36 * scale, side * 12 * scale
         );
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.moveTo(-14 * scale, side * 13 * scale);
-        ctx.quadraticCurveTo(-18 * scale, side * 22 * scale, -24 * scale, side * 23 * scale);
-        ctx.lineWidth = 1.9 * scale;
+        ctx.moveTo(-15 * scale, side * 14 * scale);
+        ctx.quadraticCurveTo(-20 * scale, side * 24 * scale, -27 * scale, side * 25 * scale);
+        ctx.lineWidth = 2.0 * scale;
         ctx.stroke();
-        ctx.lineWidth = 2.6 * scale;
+        ctx.lineWidth = 2.8 * scale;
     });
 
-    // Khối đầu & mõm
-    const headGrad = ctx.createLinearGradient(-12 * scale, 0, 26 * scale, 0);
+    // Khối đầu & mõm uy lực
+    const headGrad = ctx.createLinearGradient(-12 * scale, 0, 28 * scale, 0);
     headGrad.addColorStop(0, theme.core);
-    headGrad.addColorStop(0.55, theme.mid);
-    headGrad.addColorStop(1, theme.light);
+    headGrad.addColorStop(0.5, theme.mid);
+    headGrad.addColorStop(1, theme.belly);
 
     ctx.beginPath();
-    ctx.moveTo(25 * scale, 0);
-    ctx.quadraticCurveTo(22 * scale, -6.5 * scale, 13 * scale, -6.5 * scale);
-    ctx.quadraticCurveTo(6 * scale, -12 * scale, -6 * scale, -11 * scale);
-    ctx.lineTo(-13 * scale, -5 * scale);
+    ctx.moveTo(27 * scale, 0);
+    ctx.quadraticCurveTo(23 * scale, -7 * scale, 14 * scale, -7 * scale);
+    ctx.quadraticCurveTo(6 * scale, -13 * scale, -6 * scale, -11.5 * scale);
+    ctx.lineTo(-14 * scale, -5.5 * scale);
     ctx.lineTo(-10 * scale, 0);
-    ctx.lineTo(-13 * scale, 5 * scale);
-    ctx.lineTo(-6 * scale, 11 * scale);
-    ctx.quadraticCurveTo(6 * scale, 12 * scale, 13 * scale, 6.5 * scale);
-    ctx.quadraticCurveTo(22 * scale, 6.5 * scale, 25 * scale, 0);
+    ctx.lineTo(-14 * scale, 5.5 * scale);
+    ctx.lineTo(-6 * scale, 11.5 * scale);
+    ctx.quadraticCurveTo(6 * scale, 13 * scale, 14 * scale, 7 * scale);
+    ctx.quadraticCurveTo(23 * scale, 7 * scale, 27 * scale, 0);
     ctx.closePath();
 
     ctx.fillStyle = headGrad;
     ctx.shadowColor = theme.glow;
-    ctx.shadowBlur = 18 * scale;
+    ctx.shadowBlur = 20 * scale;
     ctx.fill();
-    ctx.strokeStyle = theme.belly;
-    ctx.lineWidth = 1.2 * scale;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.3 * scale;
     ctx.stroke();
 
     // Lỗ mũi
     ctx.fillStyle = theme.core;
     [-1, 1].forEach(side => {
         ctx.beginPath();
-        ctx.ellipse(20 * scale, side * 2.5 * scale, 1.8 * scale, 0.9 * scale, side * 0.3, 0, Math.PI * 2);
+        ctx.ellipse(21 * scale, side * 2.6 * scale, 2.0 * scale, 1.0 * scale, side * 0.3, 0, Math.PI * 2);
         ctx.fill();
     });
 
-    // Râu rồng
-    ctx.strokeStyle = theme.light;
-    ctx.lineWidth = 1.7 * scale;
+    // Râu rồng dài uốn lượn
+    ctx.strokeStyle = theme.belly;
+    ctx.lineWidth = 1.8 * scale;
     ctx.shadowColor = theme.glow;
-    ctx.shadowBlur = 10 * scale;
-    const w1 = Math.sin(time * 0.011) * 7 * scale;
-    const w2 = Math.cos(time * 0.011) * 7 * scale;
+    ctx.shadowBlur = 12 * scale;
+    const w1 = Math.sin(time * 0.012) * 8 * scale;
+    const w2 = Math.cos(time * 0.012) * 8 * scale;
     [-1, 1].forEach(side => {
         ctx.beginPath();
-        ctx.moveTo(19 * scale, side * 4.5 * scale);
+        ctx.moveTo(20 * scale, side * 4.8 * scale);
         ctx.bezierCurveTo(
-            26 * scale, side * 14 * scale + w1,
-            8 * scale, side * 26 * scale + w2,
-            -14 * scale, side * 30 * scale - w1
+            28 * scale, side * 15 * scale + w1,
+            9 * scale, side * 28 * scale + w2,
+            -18 * scale, side * 34 * scale - w1
         );
         ctx.stroke();
     });
 
-    // Đôi mắt Thần Long
+    // Đôi mắt Thần Long phát sáng rực rỡ
     ctx.shadowColor = '#ffffff';
-    ctx.shadowBlur = 12 * scale;
+    ctx.shadowBlur = (isRoaring ? 20 : 14) * scale;
     [-1, 1].forEach(side => {
         ctx.beginPath();
-        ctx.moveTo(9 * scale, side * 3.2 * scale);
-        ctx.lineTo(1 * scale, side * 8.2 * scale);
-        ctx.strokeStyle = theme.belly;
-        ctx.lineWidth = 1.8 * scale;
+        ctx.moveTo(10 * scale, side * 3.2 * scale);
+        ctx.lineTo(1 * scale, side * 8.6 * scale);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.0 * scale;
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.ellipse(5.5 * scale, side * 5.2 * scale, 3.6 * scale, 1.8 * scale, side * 0.3, 0, Math.PI * 2);
-        ctx.fillStyle = theme.eye;
+        ctx.ellipse(5.8 * scale, side * 5.4 * scale, 3.8 * scale, 2.0 * scale, side * 0.3, 0, Math.PI * 2);
+        ctx.fillStyle = isRoaring ? '#ffffff' : theme.eye;
         ctx.fill();
 
         ctx.beginPath();
-        ctx.ellipse(6.2 * scale, side * 5.2 * scale, 1.1 * scale, 1.6 * scale, 0, 0, Math.PI * 2);
+        ctx.ellipse(6.4 * scale, side * 5.4 * scale, 1.1 * scale, 1.7 * scale, 0, 0, Math.PI * 2);
         ctx.fillStyle = '#09090b';
         ctx.fill();
     });
@@ -700,6 +723,8 @@ function drawEasternDragon(ctx, segments, theme, scale, time) {
     ctx.restore();
     ctx.restore();
 }
+
+
 
 // =========================================================================
 // 6. ĐỘT PHÁ CẢNH GIỚI: THIÊN LÔI + RUNG MÀN HÌNH + KIM LONG XUẤT THẾ
@@ -727,7 +752,6 @@ function playDragonBreakthrough(level, onPeakCallback) {
     const startTime = performance.now();
     let modalTriggered = false;
 
-    // Đảm bảo luôn tự xóa canvas kể cả khi có sự cố ngoài ý muốn
     const cleanupTimer = setTimeout(() => {
         if (canvas.parentNode) canvas.remove();
     }, duration + 600);
@@ -849,9 +873,153 @@ function playDragonBreakthrough(level, onPeakCallback) {
 }
 
 // =========================================================================
-// 7. RỒNG HỘ MỆNH BAY THEO CHUỘT + CÔNG TẮC BẬT/TẮT
+// 7. RỒNG HỘ MỆNH BAY THEO CHUỘT + GẦM NHẸ KHI CLICK + NÚT BẬT/TẮT
 // =========================================================================
 let _cursorDragonLevel = 0;
+let _dragonState = null;
+
+function playDragonRoarAudio() {
+    try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+
+        // Bộ nén âm thanh giúp tiếng gầm TO, DÀY và UY LỰC mà không bị vỡ loa
+        const compressor = ctx.createDynamicsCompressor();
+        compressor.threshold.setValueAtTime(-16, now);
+        compressor.knee.setValueAtTime(18, now);
+        compressor.ratio.setValueAtTime(8, now);
+        compressor.attack.setValueAtTime(0.005, now);
+        compressor.release.setValueAtTime(0.25, now);
+
+        const masterGain = ctx.createGain();
+        masterGain.gain.setValueAtTime(0.95, now);
+        compressor.connect(masterGain);
+        masterGain.connect(ctx.destination);
+
+        // Tạo độ gằn (Distortion nhẹ) cho tiếng gầm thêm dữ dội
+        const shaper = ctx.createWaveShaper();
+        const curve = new Float32Array(256);
+        for (let i = 0; i < 256; i++) {
+            const x = (i * 2) / 256 - 1;
+            curve[i] = ((3 + 18) * x * 20 * (Math.PI / 180)) / (Math.PI + 18 * Math.abs(x));
+        }
+        shaper.curve = curve;
+
+        // LỚP 1: TIẾNG GẦM CHÍNH (2 nguồn Sawtooth lệch tần số tạo độ rền)
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        osc1.type = 'sawtooth';
+        osc2.type = 'sawtooth';
+
+        osc1.frequency.setValueAtTime(165, now);
+        osc1.frequency.exponentialRampToValueAtTime(110, now + 0.14);
+        osc1.frequency.exponentialRampToValueAtTime(52, now + 0.78);
+
+        osc2.frequency.setValueAtTime(124, now);
+        osc2.frequency.exponentialRampToValueAtTime(82, now + 0.16);
+        osc2.frequency.exponentialRampToValueAtTime(38, now + 0.78);
+
+        const roarFilter = ctx.createBiquadFilter();
+        roarFilter.type = 'lowpass';
+        roarFilter.frequency.setValueAtTime(950, now);
+        roarFilter.frequency.exponentialRampToValueAtTime(220, now + 0.75);
+        roarFilter.Q.value = 4.2;
+
+        const roarGain = ctx.createGain();
+        roarGain.gain.setValueAtTime(0.01, now);
+        roarGain.gain.linearRampToValueAtTime(0.58, now + 0.05);
+        roarGain.gain.exponentialRampToValueAtTime(0.001, now + 0.82);
+
+        osc1.connect(shaper);
+        osc2.connect(shaper);
+        shaper.connect(roarFilter);
+        roarFilter.connect(roarGain);
+        roarGain.connect(compressor);
+
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + 0.85);
+        osc2.stop(now + 0.85);
+
+        // LỚP 2: TIẾNG RỀN NGỰC (SUB-BASS RUNG ĐỘNG)
+        const subOsc = ctx.createOscillator();
+        const subGain = ctx.createGain();
+        subOsc.type = 'sine';
+        subOsc.frequency.setValueAtTime(95, now);
+        subOsc.frequency.exponentialRampToValueAtTime(34, now + 0.65);
+        subGain.gain.setValueAtTime(0.65, now);
+        subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.72);
+        subOsc.connect(subGain);
+        subGain.connect(compressor);
+        subOsc.start(now);
+        subOsc.stop(now + 0.75);
+
+        // LỚP 3: LUỒNG HƠI GẦM GỪ XÉ GIÓ (BANDPASS NOISE)
+        const bufSize = Math.floor(ctx.sampleRate * 0.72);
+        const noiseBuf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+        const data = noiseBuf.getChannelData(0);
+        for (let i = 0; i < bufSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.26));
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = noiseBuf;
+
+        const nFilter = ctx.createBiquadFilter();
+        nFilter.type = 'bandpass';
+        nFilter.frequency.setValueAtTime(680, now);
+        nFilter.frequency.exponentialRampToValueAtTime(260, now + 0.68);
+        nFilter.Q.value = 1.4;
+
+        const nGain = ctx.createGain();
+        nGain.gain.setValueAtTime(0.42, now);
+        nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+
+        noise.connect(nFilter);
+        nFilter.connect(nGain);
+        nGain.connect(compressor);
+        noise.start(now);
+    } catch (e) {
+
+    }
+}
+
+
+function triggerDragonRoar() {
+    if (!_dragonState || !_dragonState.active) return;
+    const now = performance.now();
+    if (now - _dragonState.lastRoarTime < 700) return;
+
+    _dragonState.lastRoarTime = now;
+    _dragonState.roarUntil = now + 520;
+    playDragonRoarAudio();
+
+    const head = _dragonState.segments[0];
+    const next = _dragonState.segments[1] || head;
+    const angle = Math.atan2(head.y - next.y, head.x - next.x);
+
+    _dragonState.roarWaves.push({
+        x: head.x + Math.cos(angle) * 14,
+        y: head.y + Math.sin(angle) * 14,
+        r: 6,
+        maxR: 58,
+        life: 1
+    });
+
+    for (let i = 0; i < 14; i++) {
+        const spread = angle + (Math.random() - 0.5) * 0.9;
+        const speed = 2.2 + Math.random() * 3.4;
+        _dragonState.sparks.push({
+            x: head.x + Math.cos(angle) * 12,
+            y: head.y + Math.sin(angle) * 12,
+            vx: Math.cos(spread) * speed,
+            vy: Math.sin(spread) * speed,
+            life: 1,
+            size: 2.2 + Math.random() * 2.5
+        });
+    }
+}
 
 function initCursorDragon(level) {
     _cursorDragonLevel = level;
@@ -876,27 +1044,50 @@ function initCursorDragon(level) {
     const numSegments = 26;
     const segDist = 6.2;
     const segments = Array.from({ length: numSegments }, () => ({ x: -100, y: -100 }));
-    const mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2, active: false };
     const sparks = [];
+    const roarWaves = [];
+    const mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
 
-    window.addEventListener('mousemove', (e) => {
+    _dragonState = {
+        active: false,
+        segments,
+        sparks,
+        roarWaves,
+        roarUntil: 0,
+        lastRoarTime: 0
+    };
+
+    const onMouseMove = (e) => {
+        if (!document.getElementById('cursorDragonCanvas')) {
+            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('resize', resize);
+            return;
+        }
         mouse.x = e.clientX;
         mouse.y = e.clientY;
-        if (!mouse.active) {
-            mouse.active = true;
+        if (!_dragonState.active) {
+            _dragonState.active = true;
             segments.forEach(s => { s.x = mouse.x; s.y = mouse.y; });
         }
-    });
+    };
+    window.addEventListener('mousemove', onMouseMove);
 
     function animate(now) {
-        if (!document.getElementById('cursorDragonCanvas')) return;
+        if (!document.getElementById('cursorDragonCanvas')) {
+            _dragonState = null;
+            return;
+        }
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        if (mouse.active) {
-            const orbitX = mouse.x + Math.cos(now * 0.0038) * 22;
-            const orbitY = mouse.y + Math.sin(now * 0.0076) * 14;
-            segments[0].x += (orbitX - segments[0].x) * 0.12;
-            segments[0].y += (orbitY - segments[0].y) * 0.12;
+        if (_dragonState.active) {
+            const isRoaring = now < _dragonState.roarUntil;
+            const shakeX = isRoaring ? (Math.random() - 0.5) * 4 : 0;
+            const shakeY = isRoaring ? (Math.random() - 0.5) * 4 : 0;
+
+            const orbitX = mouse.x + Math.cos(now * 0.0038) * 22 + shakeX;
+            const orbitY = mouse.y + Math.sin(now * 0.0076) * 14 + shakeY;
+            segments[0].x += (orbitX - segments[0].x) * 0.13;
+            segments[0].y += (orbitY - segments[0].y) * 0.13;
 
             for (let i = 1; i < numSegments; i++) {
                 const prev = segments[i - 1];
@@ -922,6 +1113,23 @@ function initCursorDragon(level) {
 
             ctx.save();
             ctx.globalCompositeOperation = 'lighter';
+
+            for (let i = roarWaves.length - 1; i >= 0; i--) {
+                const w = roarWaves[i];
+                w.r += 2.6;
+                w.life -= 0.045;
+                if (w.life <= 0) {
+                    roarWaves.splice(i, 1);
+                    continue;
+                }
+                ctx.beginPath();
+                ctx.arc(w.x, w.y, w.r, 0, Math.PI * 2);
+                ctx.strokeStyle = theme.light;
+                ctx.lineWidth = 2.4 * w.life;
+                ctx.globalAlpha = w.life * 0.85;
+                ctx.stroke();
+            }
+
             for (let i = sparks.length - 1; i >= 0; i--) {
                 const s = sparks[i];
                 s.x += s.vx;
@@ -932,14 +1140,15 @@ function initCursorDragon(level) {
                     continue;
                 }
                 ctx.beginPath();
-                ctx.arc(s.x, s.y, s.size * s.life, 0, Math.PI * 2);
+                ctx.arc(s.x, s.y, Math.max(0.2, s.size * s.life), 0, Math.PI * 2);
                 ctx.fillStyle = theme.glow;
-                ctx.globalAlpha = s.life * 0.8;
+                ctx.globalAlpha = Math.max(0, s.life * 0.85);
                 ctx.fill();
             }
             ctx.restore();
 
-            drawEasternDragon(ctx, segments, theme, 0.55, now);
+            const dragonScale = isRoaring ? 0.64 : 0.55;
+            drawEasternDragon(ctx, segments, theme, dragonScale, now, isRoaring);
         }
 
         requestAnimationFrame(animate);
@@ -957,15 +1166,22 @@ function toggleCursorDragon() {
         localStorage.setItem('bookstore_dragon_disabled', '1');
         const canvas = document.getElementById('cursorDragonCanvas');
         if (canvas) canvas.remove();
+        _dragonState = null;
     }
     updateDragonToggleLabel();
 }
 
 function updateDragonToggleLabel() {
-    const label = document.getElementById('dragonToggleText');
-    if (!label) return;
     const isDisabled = localStorage.getItem('bookstore_dragon_disabled') === '1';
-    label.textContent = isDisabled ? 'Bật Rồng Hộ Mệnh' : 'Tắt Rồng Hộ Mệnh';
+    const label = document.getElementById('dragonToggleText');
+    if (label) {
+        label.textContent = isDisabled ? 'Bật Rồng Hộ Mệnh' : 'Tắt Rồng Hộ Mệnh';
+    }
+    const dockBtn = document.getElementById('dragonDockToggleBtn');
+    if (dockBtn) {
+        dockBtn.classList.toggle('dragon-off', isDisabled);
+        dockBtn.title = isDisabled ? 'Bật Rồng Hộ Mệnh' : 'Tắt Rồng Hộ Mệnh';
+    }
 }
 
 // =========================================================================
@@ -1010,36 +1226,34 @@ function showBreakthroughModal(realmName, realmTitle, perks, customSubtitle, lev
 document.addEventListener('DOMContentLoaded', function () {
     const tracker = document.getElementById('realm-tracker');
     const currentUserId = tracker ? (tracker.dataset.userId || 'guest') : 'guest';
+    const currentLevel = tracker ? parseInt(tracker.dataset.level, 10) : 0;
+    const path = window.location.pathname.toLowerCase();
 
     // 1. Màn hình chờ Cổ Trang (chạy 1 lần cho mỗi tài khoản trên mỗi phiên)
-    if (window.location.pathname === '/shop' || window.location.pathname === '/') {
+    if (path === '/shop' || path === '/') {
         playXuyenKhongIntro(false, currentUserId);
     }
 
-    updateDragonToggleLabel();
-
     // 2. Theo dõi cảnh giới & Rồng hộ mệnh
-    if (tracker) {
-        const userId = tracker.dataset.userId;
-        const currentLevel = parseInt(tracker.dataset.level, 10);
-        const realmName = tracker.dataset.name;
-        const realmTitle = tracker.dataset.title;
-        const perks = tracker.dataset.perks;
+    if (tracker && !isNaN(currentLevel)) {
+        initCursorDragon(currentLevel);
 
-        if (!isNaN(currentLevel)) {
-            initCursorDragon(currentLevel);
-
-            if (userId) {
-                const key = 'bookstore_realm_level_' + userId;
-                const saved = localStorage.getItem(key);
-                if (saved !== null && currentLevel !== parseInt(saved, 10)) {
-                    const subtitle = currentLevel > parseInt(saved, 10)
-                        ? 'Đột Phá Cảnh Giới Thành Công'
-                        : 'Cảnh Giới Đã Được Điều Chỉnh';
-                    showBreakthroughModal(realmName, realmTitle, perks, subtitle, currentLevel);
-                }
-                localStorage.setItem(key, String(currentLevel));
+        if (tracker.dataset.userId) {
+            const key = 'bookstore_realm_level_' + tracker.dataset.userId;
+            const saved = localStorage.getItem(key);
+            if (saved !== null && currentLevel !== parseInt(saved, 10)) {
+                const subtitle = currentLevel > parseInt(saved, 10)
+                    ? 'Đột Phá Cảnh Giới Thành Công'
+                    : 'Cảnh Giới Đã Được Điều Chỉnh';
+                showBreakthroughModal(
+                    tracker.dataset.name,
+                    tracker.dataset.title,
+                    tracker.dataset.perks,
+                    subtitle,
+                    currentLevel
+                );
             }
+            localStorage.setItem(key, String(currentLevel));
         }
     }
 
@@ -1055,23 +1269,55 @@ document.addEventListener('DOMContentLoaded', function () {
         );
     }
 
-    // 4. Nút "Ngự Kiếm Về Đỉnh" (Back-to-Top)
+    // 4. CỤM NÚT GÓC PHẢI: Bật/Tắt Rồng + Ngự Kiếm Về Đỉnh
+    const dock = document.createElement('div');
+    dock.className = 'xian-floating-dock';
+
+    if (currentLevel >= 4 && window.innerWidth >= 768) {
+        const dragonBtn = document.createElement('button');
+        dragonBtn.type = 'button';
+        dragonBtn.id = 'dragonDockToggleBtn';
+        dragonBtn.className = 'xian-dock-btn';
+        dragonBtn.title = 'Tắt Rồng Hộ Mệnh';
+        dragonBtn.innerHTML = '<i class="bi bi-fire fs-5"></i>';
+        dragonBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleCursorDragon();
+        });
+        dock.appendChild(dragonBtn);
+    }
+
     const topBtn = document.createElement('button');
     topBtn.type = 'button';
-    topBtn.className = 'sword-top-btn';
+    topBtn.className = 'xian-dock-btn sword-top-btn';
     topBtn.title = 'Ngự Kiếm Về Đỉnh';
-    topBtn.innerHTML = '<i class="bi bi-chevron-double-up fs-5"></i>';
-    topBtn.addEventListener('click', () => {
+    topBtn.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L15 8L13.5 16H10.5L9 8L12 2Z" fill="rgba(245,217,142,0.22)"/>
+            <path d="M7 16H17"/>
+            <path d="M12 16V22"/>
+            <circle cx="12" cy="22" r="1.2" fill="currentColor"/>
+        </svg>
+    `;
+    topBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        topBtn.classList.add('launching');
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        setTimeout(() => topBtn.classList.remove('launching'), 500);
     });
-    document.body.appendChild(topBtn);
+    dock.appendChild(topBtn);
+    document.body.appendChild(dock);
 
-    window.addEventListener('scroll', () => {
-        topBtn.classList.toggle('show', window.scrollY > 280);
-    }, { passive: true });
+    updateDragonToggleLabel();
+
+    const checkScrollBtn = () => {
+        const scrollY = window.scrollY || document.documentElement.scrollTop;
+        topBtn.classList.toggle('show', scrollY > 120);
+    };
+    window.addEventListener('scroll', checkScrollBtn, { passive: true });
+    checkScrollBtn();
 
     // 5. Scroll Reveal cho thẻ sách (/shop) & bài đăng (/forum)
-    const path = window.location.pathname;
     if (path.startsWith('/shop') || path.startsWith('/forum') || path === '/') {
         const cards = document.querySelectorAll('.card');
         if ('IntersectionObserver' in window && cards.length > 0) {
@@ -1082,7 +1328,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         obs.unobserve(entry.target);
                     }
                 });
-            }, { threshold: 0.08 });
+            }, { threshold: 0.05 });
 
             cards.forEach((card, idx) => {
                 card.classList.add('realm-reveal');
@@ -1092,12 +1338,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // 6. Nâng cấp Thanh Tu Vi chảy linh khí trên trang /account
-    if (path.startsWith('/account')) {
-        document.querySelectorAll('.progress-bar').forEach(bar => {
+    // 6. Thanh Tu Vi chảy linh khí (/account)
+    if (path.includes('account') || path.includes('profile')) {
+        document.querySelectorAll('.progress-bar').forEach((bar) => {
             bar.classList.add('realm-progress-flow');
-            if (bar.parentElement) {
-                bar.parentElement.style.overflow = 'visible';
+            if (bar.parentElement && bar.parentElement.classList.contains('progress')) {
+                bar.parentElement.classList.add('realm-progress-wrap');
             }
         });
     }
@@ -1127,10 +1373,10 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // =========================================================================
-// 10. GỢN SÓNG LINH KHÍ KHI CLICK & NHẬT NGUYỆT LUÂN CHUYỂN (PHẠM VI GLOBAL)
+// 10. CLICK CHUỘT: GỢN SÓNG LINH KHÍ + RỒNG GẦM NHẸ
 // =========================================================================
 document.addEventListener('click', function (e) {
-    if (e.target.closest('.xuyenkhong-overlay')) return;
+    if (e.target.closest('.xuyenkhong-overlay') || e.target.closest('.xian-floating-dock')) return;
 
     const ring = document.createElement('span');
     ring.className = 'spirit-click-ring';
@@ -1151,8 +1397,70 @@ document.addEventListener('click', function (e) {
         document.body.appendChild(dot);
         setTimeout(() => dot.remove(), 520);
     }
+
+    if (_dragonState && _dragonState.active) {
+        triggerDragonRoar();
+    }
 });
 
+// =========================================================================
+// 11. SÁCH BAY VÀO KỆ SÁCH (FLY-TO-CART) - ĐÃ SỬA LỖI REFLOW
+// =========================================================================
+document.addEventListener('submit', function (e) {
+    const form = e.target;
+    if (!form || !form.matches || !form.matches('form[action*="/cart/add"]')) return;
+    if (form.dataset.flying === '1') return;
+
+    const cartBtn = document.querySelector('a[href*="/shop/cart"], a[href*="/cart"]');
+    if (!cartBtn) return;
+
+    const card = form.closest('.card') || form.closest('.row') || document;
+    const img = card.querySelector('.book-img-wrapper img') || card.querySelector('img');
+    if (!img) return;
+
+    e.preventDefault();
+    form.dataset.flying = '1';
+
+    const imgRect = img.getBoundingClientRect();
+    const rawCartRect = cartBtn.getBoundingClientRect();
+    const cartTarget = rawCartRect.width > 0
+        ? { x: rawCartRect.left + rawCartRect.width / 2 - 14, y: rawCartRect.top + rawCartRect.height / 2 - 18 }
+        : { x: window.innerWidth - 60, y: 24 };
+
+    const clone = document.createElement('img');
+    clone.src = img.currentSrc || img.src;
+    clone.className = 'flying-book-clone';
+    clone.style.left = imgRect.left + 'px';
+    clone.style.top = imgRect.top + 'px';
+    clone.style.width = Math.max(40, imgRect.width) + 'px';
+    clone.style.height = Math.max(52, imgRect.height) + 'px';
+    clone.style.opacity = '0.96';
+    clone.style.transform = 'scale(1.05)';
+    document.body.appendChild(clone);
+
+    void clone.offsetWidth;
+
+    requestAnimationFrame(() => {
+        clone.style.left = cartTarget.x + 'px';
+        clone.style.top = cartTarget.y + 'px';
+        clone.style.width = '28px';
+        clone.style.height = '36px';
+        clone.style.opacity = '0.18';
+        clone.style.transform = 'rotate(20deg) scale(0.7)';
+    });
+
+    setTimeout(() => {
+        clone.remove();
+        cartBtn.classList.remove('cart-btn-bounce');
+        void cartBtn.offsetWidth;
+        cartBtn.classList.add('cart-btn-bounce');
+        setTimeout(() => HTMLFormElement.prototype.submit.call(form), 160);
+    }, 620);
+});
+
+// =========================================================================
+// 12. CHUYỂN NỀN SÁNG/TỐI NHẬT NGUYỆT LUÂN CHUYỂN
+// =========================================================================
 function toggleThemeWithRipple(e) {
     const current = document.documentElement.getAttribute('data-bs-theme') || 'light';
     const next = current === 'dark' ? 'light' : 'dark';
@@ -1191,55 +1499,4 @@ function toggleThemeWithRipple(e) {
             }
         );
     });
-
-    // =========================================================================
-// 11. HIỆU ỨNG SÁCH HÓA LINH QUANG BAY VÀO KỆ SÁCH (FLY-TO-CART)
-// =========================================================================
-    document.addEventListener('DOMContentLoaded', function () {
-        const cartBtn = document.querySelector('a[href*="/shop/cart"]');
-        if (!cartBtn) return;
-
-        document.querySelectorAll('form[action*="/cart/add"]').forEach((form) => {
-            form.addEventListener('submit', function (e) {
-                if (form.dataset.flying === '1') return;
-
-                const card = form.closest('.card');
-                const img = card ? card.querySelector('.book-img-wrapper img') : null;
-                if (!img) return;
-
-                e.preventDefault();
-                form.dataset.flying = '1';
-
-                const imgRect = img.getBoundingClientRect();
-                const cartRect = cartBtn.getBoundingClientRect();
-
-                const clone = document.createElement('img');
-                clone.src = img.currentSrc || img.src;
-                clone.className = 'flying-book-clone';
-                clone.style.left = imgRect.left + 'px';
-                clone.style.top = imgRect.top + 'px';
-                clone.style.width = imgRect.width + 'px';
-                clone.style.height = imgRect.height + 'px';
-                clone.style.opacity = '0.95';
-                document.body.appendChild(clone);
-
-                // Kích hoạt bay lên nút Kệ sách ở khung hình kế tiếp
-                requestAnimationFrame(() => {
-                    clone.style.left = (cartRect.left + cartRect.width / 2 - 14) + 'px';
-                    clone.style.top = (cartRect.top + cartRect.height / 2 - 18) + 'px';
-                    clone.style.width = '28px';
-                    clone.style.height = '36px';
-                    clone.style.opacity = '0.2';
-                    clone.style.transform = 'rotate(18deg)';
-                });
-
-                setTimeout(() => {
-                    clone.remove();
-                    cartBtn.classList.add('cart-btn-bounce');
-                    setTimeout(() => form.submit(), 180);
-                }, 540);
-            });
-        });
-    });
-    
 }
